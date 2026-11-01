@@ -7,13 +7,22 @@ use App\Models\Booking;
 use App\Models\Clinic;
 use App\Models\Practitioner;
 use App\Models\Schedule;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class ClinicSeeder extends Seeder
 {
     public function run(): void
     {
+        $owner = User::create([
+            'name' => 'Klinik Maju Jaya Admin',
+            'email' => 'admin@klinikmajujaya.test',
+            'password' => Hash::make('password'),
+        ]);
+
         $clinic = Clinic::create([
+            'user_id' => $owner->id,
             'name' => 'Klinik Maju Jaya',
             'phone' => '628123456789',
             'whatsapp_number' => '628123456789',
