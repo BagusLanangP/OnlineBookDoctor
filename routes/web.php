@@ -3,8 +3,13 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\BlockedTimeController;
 use Inertia\Inertia;
 
+
+// main entry point for the application, defining web routes and their associated controllers and middleware.
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -14,18 +19,33 @@ Route::get('/', function () {
     ]);
 });
 
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
 Route::middleware(['auth', 'verified', 'has.clinic'])->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard', [
             'clinic' => auth()->user()->clinic,
         ]);
     })->name('dashboard');
+
+    Route::get('/practitioners/{practitioner}/schedules', [ScheduleController::class, 'index']);
+    Route::post('/practitioners/{practitioner}/schedules', [ScheduleController::class, 'store']);
+    Route::put('/schedules/{schedule}', [ScheduleController::class, 'update']);
+    Route::delete('/schedules/{schedule}', [ScheduleController::class, 'destroy']);
+
+    Route::get('/bookings', [BookingController::class, 'index']);
+    Route::post('/bookings', [BookingController::class, 'store']);
+    Route::put('/bookings/{booking}', [BookingController::class, 'update']);
+    Route::delete('/bookings/{booking}', [BookingController::class, 'destroy']);
+
+    Route::get('/practitioners/{practitioner}/blocked-times', [BlockedTimeController::class, 'index']);
+    Route::post('/practitioners/{practitioner}/blocked-times', [BlockedTimeController::class, 'store']);
+    Route::delete('/blocked-times/{blockedTime}', [BlockedTimeController::class, 'destroy']);
 });
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
 
 require __DIR__.'/auth.php';
