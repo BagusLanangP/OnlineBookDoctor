@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\BookingController;
 use Inertia\Inertia;
 
 
@@ -34,6 +35,11 @@ Route::middleware(['auth', 'verified', 'has.clinic'])->group(function () {
     Route::post('/practitioners/{practitioner}/schedules', [ScheduleController::class, 'store']);
     Route::put('/schedules/{schedule}', [ScheduleController::class, 'update']);
     Route::delete('/schedules/{schedule}', [ScheduleController::class, 'destroy']);
+
+    Route::get('/bookings', [BookingController::class, 'index']);
+    Route::post('/bookings', [BookingController::class, 'store']);
+    Route::put('/bookings/{booking}', [BookingController::class, 'update']);
+    Route::delete('/bookings/{booking}', [BookingController::class, 'destroy']);
 });
 
 
