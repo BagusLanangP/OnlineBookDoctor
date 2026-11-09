@@ -5,6 +5,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\BlockedTimeController;
 use Inertia\Inertia;
 
 
@@ -40,6 +41,10 @@ Route::middleware(['auth', 'verified', 'has.clinic'])->group(function () {
     Route::post('/bookings', [BookingController::class, 'store']);
     Route::put('/bookings/{booking}', [BookingController::class, 'update']);
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy']);
+
+    Route::get('/practitioners/{practitioner}/blocked-times', [BlockedTimeController::class, 'index']);
+    Route::post('/practitioners/{practitioner}/blocked-times', [BlockedTimeController::class, 'store']);
+    Route::delete('/blocked-times/{blockedTime}', [BlockedTimeController::class, 'destroy']);
 });
 
 
