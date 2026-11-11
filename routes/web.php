@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BlockedTimeController;
+use App\Http\Controllers\DashboardController;
 use Inertia\Inertia;
 
 
@@ -26,11 +27,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'verified', 'has.clinic'])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard', [
-            'clinic' => auth()->user()->clinic,
-        ]);
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/practitioners/{practitioner}/schedules', [ScheduleController::class, 'index']);
     Route::post('/practitioners/{practitioner}/schedules', [ScheduleController::class, 'store']);
