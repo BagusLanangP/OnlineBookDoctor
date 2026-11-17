@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Repositories\Contracts\BookingRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use App\Models\Booking;
 
 class BookingService
 {
@@ -19,5 +20,17 @@ class BookingService
     public function list(int $clinicId, ?string $status, ?string $practitionerId): LengthAwarePaginator
     {
         return $this->bookings->search($clinicId, $status, $practitionerId);
+    }
+
+    public function updateStatus(Booking $booking, string $status): Booking
+    {
+        return $this->bookings->updateStatus($booking, $status);
+    }
+
+    // Dipakai oleh destroy(): di sini aturan bisnisnya hidup.
+    // "Menghapus" booking = menandainya cancelled, data tidak dibuang.
+    public function cancel(Booking $booking): void
+    {
+        $this->bookings->updateStatus($booking, 'cancelled');
     }
 }

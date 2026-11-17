@@ -3,6 +3,7 @@
 namespace App\Repositories\Contracts;
 // Namespace harus sama persis dengan folder (huruf besar-kecil juga).
 // Itu sebabnya folder tadi kita ganti jadi "Contracts".
+use App\Models\Booking;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -18,4 +19,7 @@ interface BookingRepositoryInterface
         ?string $status,
         ?string $practitionerId,
     ): LengthAwarePaginator;
+
+    public function updateStatus(Booking $booking, string $status): Booking;
+    
 }

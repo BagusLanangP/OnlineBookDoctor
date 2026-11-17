@@ -25,4 +25,14 @@ class EloquentBookingRepository implements BookingRepositoryInterface
             ->orderBy('booked_time')
             ->paginate(20);
     }
+
+
+    public function updateStatus(Booking $booking, string $status): Booking
+    {
+        $booking->update(['status' => $status]);
+
+        // Kembalikan OBJEK YANG SAMA, bukan hasil query baru.
+        // Lihat bagian "Rawan salah" nomor 1 untuk alasannya.
+        return $booking;
+    }
 }

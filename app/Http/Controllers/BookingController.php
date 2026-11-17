@@ -78,18 +78,20 @@ class BookingController extends Controller
         return response()->json($booking->load('practitioner:id,name'), 201);
     }
 
-    public function update(UpdateBookingRequest $request, Booking $booking): JsonResponse
+    public function update(UpdateBookingRequest $request, Booking $booking, BookingService $service): JsonResponse
     {
-        $booking->update($request->validated());
+        // validated('status') mengambil satu field saja dari data yang sudah divalidasi.
+        $booking = $service->updateStatus($booking, $request->validated('status'));
 
         return response()->json($booking);
     }
 
-    public function destroy(Request $request, Booking $booking): JsonResponse
+    public function destroy(Request $request, Booking $booking, BookingService $service): JsonResponse
     {
+        // Otorisasi tetap di controller (Keputusan #4).
         abort_unless($booking->practitioner->clinic_id === $request->user()->clinic->id, 403);
 
-        $booking->update(['status' => 'cancelled']);
+        $service->cancel($booking);
 
         return response()->json(status: 204);
     }
