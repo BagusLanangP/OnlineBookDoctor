@@ -32,7 +32,8 @@ Tombol "Masuk" mengarah ke `NEXT_PUBLIC_APP_URL` + `/login`
 | `components/Board.tsx` | Papan jadwal praktek yang bisa diklik (objek tetap di kiri) |
 | `components/Step.tsx`, `StageContext.tsx` | Langkah cerita yang mengganti keadaan papan |
 | `components/ui.tsx` | Potongan antarmuka Dashboard dan editor jadwal (contoh) |
-| `components/Showcase.tsx` | Dashboard dengan tiga tab |
+| `components/Showcase.tsx` | Dashboard dengan tiga tab di atas foto |
+| `components/Photo.tsx` | Foto dengan perlakuan duotone seragam |
 | `lib/config.ts` | Alamat aplikasi Laravel |
 
 ## Yang perlu diketahui
@@ -42,6 +43,9 @@ Tombol "Masuk" mengarah ke `NEXT_PUBLIC_APP_URL` + `/login`
   Bahasa Indonesia dan warna biru Praktika (aplikasi aslinya masih berbahasa Inggris dan beraksen indigo).
 - `next.config.ts` mengunci `turbopack.root` ke folder ini. Tanpa itu, Next.js ikut membaca
   `postcss.config.js` (Tailwind 3) milik Laravel di folder induk dan build gagal.
-- Kata "praktika" dan seluruh tampilan memakai font Clash Grotesk dari Fontshare (butuh koneksi internet).
+- Font: Plus Jakarta Sans, dimuat lewat `next/font/google` (file font disimpan sendiri saat build).
+- Foto (5 buah di `public/img`) berasal dari Unsplash dan hanya suasana, bukan foto klinik tertentu.
+  Semuanya memakai satu perlakuan duotone biru (filter `#duo` di `app/layout.tsx`, kelas `.photo` di
+  `app/globals.css`). Kreditnya ada di kaki halaman; ganti foto dengan foto klinik asli kalau sudah ada.
 - Pendaftaran klinik mandiri belum ada di aplikasi Laravel (akun baru belum otomatis punya klinik),
   jadi halaman ini hanya menawarkan "Masuk", bukan "Daftar".

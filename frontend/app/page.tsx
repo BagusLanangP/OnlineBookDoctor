@@ -1,5 +1,6 @@
 import { Board } from "@/components/Board";
 import { LogoMark } from "@/components/Logo";
+import { Photo } from "@/components/Photo";
 import { Reveal } from "@/components/Reveal";
 import { Showcase } from "@/components/Showcase";
 import { StageProvider } from "@/components/StageContext";
@@ -82,17 +83,28 @@ export default function Home() {
                     : jadwal praktek dan booking klinik tanpa bentrok
                   </span>
                 </h1>
-                <p className="hero__lead">
-                  Jam praktek dan janji temu klinik dalam satu papan, tanpa
-                  dobel booking.
-                </p>
-                <div className="hero__actions">
-                  <a className="btn" href={LOGIN_URL}>
-                    Masuk ke dashboard
-                  </a>
-                  <a className="btn btn--tone" href="#cara-kerja">
-                    Lihat cara kerja
-                  </a>
+                <Photo
+                  className="hero__photo photo--drift"
+                  src="/img/jam-praktek.jpg"
+                  alt="Wajah jam meja analog hitam putih dari dekat"
+                  width={1200}
+                  height={680}
+                  priority
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                />
+                <div className="hero__body">
+                  <p className="hero__lead">
+                    Jam praktek dan janji temu klinik dalam satu papan, tanpa
+                    dobel booking.
+                  </p>
+                  <div className="hero__actions">
+                    <a className="btn" href={LOGIN_URL}>
+                      Masuk ke dashboard
+                    </a>
+                    <a className="btn btn--tone" href="#cara-kerja">
+                      Lihat cara kerja
+                    </a>
+                  </div>
                 </div>
               </section>
 
@@ -122,6 +134,16 @@ export default function Home() {
                     yang kedua mendapat pesan bahwa slot baru saja terambil.
                     Coba pilih satu jam di papan.
                   </p>
+                  <div className="step__evidence">
+                    <Photo
+                      className="photo--wide"
+                      src="/img/bangku-tunggu.jpg"
+                      alt="Tiga bingkai gambar di dinding putih di atas bangku kulit hitam"
+                      width={1120}
+                      height={630}
+                      sizes="(min-width: 1024px) 580px, 100vw"
+                    />
+                  </div>
                 </Step>
 
                 <Step mode="cuti">
@@ -131,6 +153,16 @@ export default function Home() {
                     menghitung berapa booking aktif yang bentrok dengan blokir
                     tersebut.
                   </p>
+                  <div className="step__evidence">
+                    <Photo
+                      className="photo--wide"
+                      src="/img/kursi-kosong.jpg"
+                      alt="Kursi kayu kosong di depan jendela berkaca saat senja"
+                      width={1120}
+                      height={630}
+                      sizes="(min-width: 1024px) 580px, 100vw"
+                    />
+                  </div>
                 </Step>
 
                 <Step mode="jadwal" panel={false}>
@@ -176,9 +208,18 @@ export default function Home() {
         </div>
 
         <section className="faq" id="tanya-jawab" aria-labelledby="faq-judul">
-          <Reveal as="h2">
-            <span id="faq-judul">Tanya jawab</span>
-          </Reveal>
+          <div className="faq__side">
+            <Reveal as="h2">
+              <span id="faq-judul">Tanya jawab</span>
+            </Reveal>
+            <Photo
+              src="/img/tangan-merawat.jpg"
+              alt="Dua tangan menangkup pucuk cemara hijau"
+              width={800}
+              height={1000}
+              sizes="(min-width: 1024px) 25vw, 100vw"
+            />
+          </div>
           <div className="faq__text">
             {FAQ.map(([q, a], i) => (
               <Reveal as="p" key={q} delay={Math.min(i, 4) * 60}>
@@ -233,6 +274,11 @@ export default function Home() {
           <a href={LOGIN_URL}>Masuk</a>
         </nav>
         <span className="foot__end">© 2026 Praktika</span>
+        <p className="foot__credit">
+          Foto dari Unsplash: petradr (jam), Logan Adermatt (kursi), The Anchor
+          (bangku), Breather (ruang), Jean Lakosnyk (tangan). Foto-foto ini
+          suasana, bukan foto klinik tertentu.
+        </p>
       </footer>
     </>
   );

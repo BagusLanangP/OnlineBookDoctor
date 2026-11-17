@@ -2,6 +2,7 @@
 
 import { useRef, useState, type KeyboardEvent } from "react";
 import { LOGIN_URL } from "@/lib/config";
+import { Photo } from "./Photo";
 import {
   PractitionersCard,
   TodayBookingsCard,
@@ -30,6 +31,14 @@ export function Showcase() {
   return (
     <section className="showcase" aria-labelledby="dashboard-judul">
       <div className="showcase__plate">
+        <Photo
+          className="photo--drift"
+          src="/img/ruang-tunggu.jpg"
+          alt="Meja kayu dengan kursi-kursi putih di dekat jendela besar yang terang"
+          width={1200}
+          height={1200}
+          sizes="(min-width: 1024px) 50vw, 100vw"
+        />
         <div
           className="showcase__ui"
           role="tabpanel"

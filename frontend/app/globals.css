@@ -23,13 +23,13 @@
   --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
   --step-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
   --step-head: clamp(2rem, 1.3rem + 3.2vw, 4rem);
-  --step-display: clamp(76px, 9.2vw, 168px);
+  --step-display: clamp(64px, 8.2vw, 148px);
 
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 @theme inline {
-  --font-sans: "Clash Grotesk", ui-sans-serif, system-ui, -apple-system,
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", sans-serif;
 }
 
@@ -82,7 +82,7 @@ a {
   padding: 0 28px;
   background: var(--accent);
   color: var(--accent-ink);
-  font-weight: 500;
+  font-weight: 600;
   text-decoration: none;
   transition: background-color 160ms var(--ease), translate 160ms var(--ease);
 }
@@ -221,8 +221,8 @@ a {
 .board__title {
   margin: 0;
   font-size: var(--step-head);
-  font-weight: 400;
-  line-height: 0.95;
+  font-weight: 500;
+  line-height: 1;
   letter-spacing: -0.03em;
 }
 .board__doctor {
@@ -270,7 +270,7 @@ a {
   background: var(--paper);
   color: var(--ink);
   font-size: var(--step-small);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .board__panel {
@@ -298,7 +298,7 @@ a {
   font-size: var(--step-lead);
   line-height: 1.1;
   letter-spacing: -0.02em;
-  font-weight: 400;
+  font-weight: 500;
 }
 .board__slots {
   display: grid;
@@ -328,7 +328,7 @@ a {
 }
 .slot b {
   font-size: var(--step-body);
-  font-weight: 500;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .slot:hover:not(:disabled) {
@@ -354,7 +354,7 @@ a {
 }
 .board__note strong {
   color: var(--accent-ink);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* ------------------------------------------------------------------
@@ -364,14 +364,30 @@ a {
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   min-height: 54svh;
   padding: 24px 0 40px;
+}
+.hero__body {
+  margin-block: 32px;
 }
 @media (min-width: 1024px) {
   .hero {
     min-height: 100svh;
-    padding: 0;
+    /* ruang atas untuk bilah atas, ruang bawah untuk nama besar */
+    padding: 88px 0 calc(var(--step-display) * 0.92 + 80px);
+  }
+  .hero__body {
+    margin-block: auto;
+  }
+}
+.hero__photo {
+  flex: none;
+  aspect-ratio: 16 / 10;
+}
+@media (min-width: 1024px) {
+  .hero__photo {
+    aspect-ratio: auto;
+    height: clamp(190px, 33svh, 330px);
   }
 }
 .hero__lead {
@@ -390,9 +406,9 @@ a {
 .wordmark {
   margin: 0;
   font-size: var(--step-display);
-  font-weight: 400;
-  line-height: 0.85;
-  letter-spacing: -0.04em;
+  font-weight: 500;
+  line-height: 0.92;
+  letter-spacing: -0.035em;
   white-space: nowrap;
   transform-origin: left bottom;
 }
@@ -441,7 +457,7 @@ a {
 .section-head {
   margin: 0 0 48px;
   font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2rem);
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1.1;
   letter-spacing: -0.02em;
 }
@@ -455,7 +471,7 @@ a {
 }
 .step > p strong {
   color: var(--ink);
-  font-weight: 500;
+  font-weight: 600;
 }
 .step__evidence {
   margin-top: 24px;
@@ -494,14 +510,14 @@ a {
   margin: 0 0 40px;
   text-align: center;
   font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.5rem);
-  font-weight: 400;
-  line-height: 0.95;
+  font-weight: 500;
+  line-height: 1;
   letter-spacing: -0.03em;
 }
 .sheet h3 {
   margin: 44px 0 18px;
   font-size: var(--step-lead);
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.1;
 }
 .sheet h3:first-of-type {
@@ -528,7 +544,7 @@ a {
   translate: 0 -4px;
 }
 .sheet__value {
-  font-weight: 500;
+  font-weight: 600;
   white-space: nowrap;
 }
 .sheet__desc {
@@ -552,14 +568,22 @@ a {
   }
 }
 .showcase__plate {
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-end;
+  justify-content: flex-start;
+  min-height: 78svh;
   padding: var(--margin);
   background: var(--surface);
 }
+.showcase__plate .photo {
+  position: absolute;
+  inset: 0;
+}
 .showcase__ui {
-  width: min(100%, 560px);
+  position: relative;
+  z-index: 1;
+  width: min(100%, 520px);
 }
 .showcase__text {
   display: flex;
@@ -586,7 +610,7 @@ a {
 }
 .tab[aria-selected="true"] {
   color: var(--ink);
-  font-weight: 500;
+  font-weight: 600;
 }
 .tab:hover {
   color: var(--accent);
@@ -595,8 +619,8 @@ a {
   margin: 0;
   max-width: 14ch;
   font-size: var(--step-head);
-  font-weight: 400;
-  line-height: 0.95;
+  font-weight: 500;
+  line-height: 1;
   letter-spacing: -0.03em;
 }
 .showcase__desc {
@@ -653,17 +677,26 @@ a {
     grid-template-columns: repeat(12, minmax(0, 1fr));
     column-gap: 24px;
   }
-  .faq h2 {
+  .faq__side {
     grid-column: 1 / span 3;
   }
   .faq__text {
     grid-column: 5 / span 8;
   }
 }
+.faq__side .photo {
+  margin-top: 32px;
+  aspect-ratio: 16 / 10;
+}
+@media (min-width: 1024px) {
+  .faq__side .photo {
+    aspect-ratio: 4 / 5;
+  }
+}
 .faq h2 {
   margin: 0;
   font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2rem);
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1.1;
   letter-spacing: -0.02em;
 }
@@ -684,7 +717,7 @@ a {
 }
 .faq__text p strong {
   color: var(--ink);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* ------------------------------------------------------------------
@@ -719,8 +752,8 @@ a {
 }
 .closing h2 {
   margin: 0;
-  font-size: clamp(2.75rem, 7.4vw, 7rem);
-  font-weight: 400;
+  font-size: clamp(2.5rem, 6.4vw, 6.25rem);
+  font-weight: 500;
   line-height: 0.92;
   letter-spacing: -0.03em;
 }
@@ -740,6 +773,11 @@ a {
   padding: 20svh var(--margin) 24px;
   font-size: var(--step-small);
   color: var(--muted);
+}
+.foot__credit {
+  grid-column: 1 / -1;
+  margin: 16px 0 0;
+  max-width: 70ch;
 }
 .foot a {
   color: var(--ink);
@@ -792,6 +830,44 @@ a {
   .js [data-in="true"] .grow,
   .js .grow[data-in="true"] {
     scale: 1 1;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Foto: satu perlakuan (duotone) di seluruh halaman, sudut persegi.
+   ------------------------------------------------------------------ */
+.photo {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: var(--accent);
+}
+.photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: url(#duo);
+}
+.photo--wide {
+  aspect-ratio: 16 / 9;
+}
+/* Gerak pelan: foto mengecil dari 1,08 ke 1 saat lewat di layar. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .photo--drift img {
+      animation: photo-drift linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 60%;
+    }
+  }
+}
+@keyframes photo-drift {
+  from {
+    scale: 1.1;
+  }
+  to {
+    scale: 1;
   }
 }
 
