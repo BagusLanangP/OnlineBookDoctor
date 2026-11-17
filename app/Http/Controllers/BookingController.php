@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\BookingService;
 use App\Http\Requests\StoreBookingRequest;
 use App\Http\Requests\UpdateBookingRequest;
 use App\Models\Booking;
@@ -16,17 +17,17 @@ use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, BookingService $bookings): JsonResponse
     {
-        $bookings = Booking::query()
-            ->whereHas('practitioner', fn ($q) => $q->where('clinic_id', $request->user()->clinic->id))
-            ->when($request->query('status'), fn ($q, $status) => $q->where('status', $status))
-            ->when($request->query('practitioner_id'), fn ($q, $id) => $q->where('practitioner_id', $id))
-            ->with('practitioner:id,name')
-            ->orderBy('booked_time')
-            ->paginate(20);
+        // Controller hanya: ambil data dari request -> panggil service -> balas.
+        // Tidak ada lagi Booking:: di method ini.
+        $result = $bookings->list(
+            $request->user()->clinic->id,
+            $request->query('status'),
+            $request->query('practitioner_id'),
+        );
 
-        return response()->json($bookings);
+        return response()->json($result);
     }
 
     public function store(StoreBookingRequest $request, AvailabilityService $availability): JsonResponse
