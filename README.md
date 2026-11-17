@@ -21,6 +21,54 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
+## Menjalankan dengan Docker
+
+Environment development memakai Docker Compose dengan 4 service:
+
+| Service | Fungsi | Port host |
+|---|---|---|
+| `app` | PHP 8.4-FPM (Laravel) | - |
+| `nginx` | Web server | `8088` |
+| `db` | MySQL 8.0 | `3308` |
+| `node` | Vite dev server (hot reload) | `5173` |
+
+Prasyarat: [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+
+```bash
+# 1. Siapkan environment (nilai DB di .env.example sudah cocok dengan Docker)
+cp .env.example .env
+
+# 2. Build dan jalankan semua container
+docker compose up -d --build
+
+# 3. Install dependency, generate key, migrasi + seed database
+docker compose exec app composer install
+docker compose exec app php artisan key:generate
+docker compose exec app php artisan migrate --seed
+```
+
+Buka aplikasi di <http://localhost:8088>.
+
+Perintah yang sering dipakai:
+
+```bash
+docker compose ps                       # status container
+docker compose logs -f app              # log PHP (ganti nama service sesuai kebutuhan)
+docker compose exec app bash            # masuk ke container app
+docker compose exec app php artisan test
+docker compose down                     # stop & hapus container (data DB tetap aman)
+docker compose down -v                  # sekaligus hapus data DB
+```
+
+Jika port bentrok dengan aplikasi lain, ubah sisi kiri mapping `ports` di `docker-compose.yml`
+(misalnya `"8089:80"`), lalu samakan `APP_URL` di `.env`. Koneksi antar-container tidak terpengaruh
+karena memakai `db:3306`.
+
+Untuk mengakses database dari luar Docker (mis. TablePlus): host `127.0.0.1`, port `3308`,
+user `laravel`, password `secret`.
+
+> Catatan: kredensial di atas hanya untuk development lokal.
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
