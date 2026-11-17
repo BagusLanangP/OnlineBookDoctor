@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\Booking;
 use App\Repositories\Contracts\BookingRepositoryInterface;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 // "implements" = class ini berjanji memenuhi semua method di interface.
@@ -34,5 +35,21 @@ class EloquentBookingRepository implements BookingRepositoryInterface
         // Kembalikan OBJEK YANG SAMA, bukan hasil query baru.
         // Lihat bagian "Rawan salah" nomor 1 untuk alasannya.
         return $booking;
+    }
+
+    public function deleteCancelledAt(int $practitionerId, CarbonInterface $bookedTime): void
+    {
+        // Dipindah persis dari dalam transaksi di store().
+        Booking::where('practitioner_id', $practitionerId)
+            ->where('booked_time', $bookedTime)
+            ->where('status', 'cancelled')
+            ->delete();
+    }
+
+    public function create(array $data): Booking
+    {
+        // load() di sini menggantikan $booking->load(...) yang tadinya di controller.
+        // load() itu query, jadi tempatnya di repository.
+        return Booking::create($data)->load('practitioner:id,name');
     }
 }
