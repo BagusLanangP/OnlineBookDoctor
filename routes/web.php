@@ -7,6 +7,7 @@ use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BlockedTimeController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ScheduleWeekController;
 use Inertia\Inertia;
 
 
@@ -42,6 +43,11 @@ Route::middleware(['auth', 'verified', 'has.clinic'])->group(function () {
     Route::get('/practitioners/{practitioner}/blocked-times', [BlockedTimeController::class, 'index']);
     Route::post('/practitioners/{practitioner}/blocked-times', [BlockedTimeController::class, 'store']);
     Route::delete('/blocked-times/{blockedTime}', [BlockedTimeController::class, 'destroy']);
+
+
+    Route::get('/schedules/edit', [ScheduleWeekController::class, 'edit'])->name('schedules.edit');
+    Route::put('/practitioners/{practitioner}/schedules', [ScheduleWeekController::class, 'update'])->name('schedules.update');
+    
 });
 
 

@@ -2,16 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Clinic, Practitioner, TodayBooking, WeekSchedule } from '@/types';
 import { Head } from '@inertiajs/react';
 import { PropsWithChildren } from 'react';
-
-const DAYS = [
-    { dow: 1, label: 'Monday' },
-    { dow: 2, label: 'Tuesday' },
-    { dow: 3, label: 'Wednesday' },
-    { dow: 4, label: 'Thursday' },
-    { dow: 5, label: 'Friday' },
-    { dow: 6, label: 'Saturday' },
-    { dow: 0, label: 'Sunday' },
-]; // Decision #4: Monday first
+import { DAYS } from '@/lib/days';
 
 const STATUS_STYLES: Record<TodayBooking['status'], string> = {
     confirmed: 'bg-blue-100 text-blue-800',

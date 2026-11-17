@@ -41,3 +41,9 @@ export interface WeekSchedule {
     end_time: string;
     practitioner: string;
 }
+
+export interface ScheduleRow {
+    day_of_week: number;
+    start_time: string; // "09:00"
+    end_time: string;
+}
