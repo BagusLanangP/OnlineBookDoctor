@@ -10,28 +10,40 @@ import { Practitioner, ScheduleRow } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
 import { ChangeEvent, FormEventHandler, useEffect } from 'react';
 
+// Props = bentuk data yang diterima halaman ini dari controller (ScheduleWeekController::edit).
+// Ini hanya "deskripsi tipe" untuk TypeScript, bukan data itu sendiri: berguna agar salah ketik
+// nama field atau salah tipe ketahuan saat menulis kode, lalu hilang setelah build.
+// Nama field harus sama dengan key di Inertia::render(...) pada controller.
 interface Props {
-    practitioners: Practitioner[];
-    practitioner: Practitioner | null;
-    schedules: ScheduleRow[];
+    practitioners: Practitioner[]; // semua practitioner di klinik (isi dropdown)
+    practitioner: Practitioner | null; // yang sedang dipilih; null jika klinik belum punya practitioner
+    schedules: ScheduleRow[]; // jadwal mingguan practitioner terpilih (hanya hari yang aktif)
 }
 
-/** One weekday in the form. `working = false` means the day is switched off. */
+// Satu hari di dalam form. Beda dengan ScheduleRow (data dari server, hanya hari aktif),
+// DayState selalu ada 7 buah, dan `working = false` berarti hari itu libur.
 interface DayState {
-    dow: number;
-    working: boolean;
-    start_time: string;
+    dow: number; // day of week: 0 = Minggu ... 6 = Sabtu
+    working: boolean; // dicentang = praktek di hari itu
+    start_time: string; // "09:00"
     end_time: string;
 }
 
+// Jam bawaan saat sebuah hari baru dicentang dan belum pernah punya jadwal
 const DEFAULT_START = '09:00';
 const DEFAULT_END = '17:00';
 
-// Shared by the axis row and every day row so the preview bars line up.
-// label | time inputs | preview bar (stacked on phones)
+// Lebar kolom grid dipakai bersama oleh baris sumbu jam dan setiap baris hari,
+// supaya bar preview sejajar dengan angka 00-24 di atasnya.
+// Kolom: nama hari | input jam | bar preview (di layar kecil ditumpuk ke bawah)
 const ROW_GRID = 'sm:grid-cols-[9rem_15rem_1fr]';
 
-/** Seven entries in DAYS order; days that have a saved schedule start as working. */
+/**
+ * Mengubah data dari server (hanya hari aktif) menjadi 7 baris form.
+ * Output : 7 DayState urut Senin..Minggu (urutan DAYS).
+ * Hari yang ada di `schedules` => working: true dengan jam tersimpan;
+ * hari lain => working: false dengan jam bawaan 09:00-17:00.
+ */
 function buildDays(schedules: ScheduleRow[]): DayState[] {
     return DAYS.map(({ dow }) => {
         const saved = schedules.find((s) => s.day_of_week === dow);
@@ -44,7 +56,12 @@ function buildDays(schedules: ScheduleRow[]): DayState[] {
     });
 }
 
-/** Client-side check; the server stays the source of truth. */
+/**
+ * Validasi di browser untuk satu hari.
+ * Output : teks pesan error, atau null jika valid / hari libur.
+ * Hanya untuk kenyamanan (pesan langsung muncul); validasi sebenarnya tetap di server
+ * (SyncSchedulesRequest) karena request bisa dikirim tanpa lewat form ini.
+ */
 function validateDay(day: DayState): string | null {
     if (!day.working) return null;
 
@@ -56,7 +73,12 @@ function validateDay(day: DayState): string | null {
     return null;
 }
 
-/** The working part of a day drawn on a 00:00-24:00 track. */
+/**
+ * Bar preview: jalur 00:00-24:00, bagian jam kerja diwarnai.
+ * Posisi kiri dan lebar dihitung sebagai persen dari 1440 menit sehari.
+ * Dihitung dari state form, jadi ikut berubah saat jam diketik.
+ * aria-hidden: murni hiasan visual; informasinya sudah ada di input jam.
+ */
 function DayBar({ day }: { day: DayState }) {
     const start = toMinutes(day.start_time);
     const end = toMinutes(day.end_time);
@@ -77,6 +99,11 @@ function DayBar({ day }: { day: DayState }) {
     );
 }
 
+/**
+ * Form 7 hari untuk SATU practitioner.
+ * Proses: tampilkan data -> pengguna ubah (state di useForm) -> klik Save -> kirim PUT
+ * -> controller menyimpan lalu `back()` -> Inertia mengirim props baru.
+ */
 function WeekForm({
     practitioner,
     schedules,
@@ -84,16 +111,20 @@ function WeekForm({
     practitioner: Practitioner;
     schedules: ScheduleRow[];
 }) {
+    // State form hidup di sini (bukan di props). Props hanya nilai awal; mengetik jam baru
+    // tidak mengubah `schedules`, hanya mengubah form.data.days.
     const form = useForm<{ days: DayState[] }>({ days: buildDays(schedules) });
     const { days } = form.data;
-    // Server errors are keyed "schedules.N.field"; useForm's types only know "days".
+    // Error dari server berkunci "schedules.N.field", sedangkan tipe useForm hanya tahu "days".
     const serverErrors = form.errors as Record<string, string | undefined>;
 
-    // The server validates the list of WORKING days only, so "schedules.0" is the
-    // first working day, not Monday. Rebuild the same list to map index -> day.
+    // Server hanya memvalidasi daftar hari KERJA, jadi "schedules.0" berarti hari kerja
+    // pertama, bukan Senin. Daftar yang sama dibangun ulang di sini untuk memetakan
+    // nomor urut error dari server -> hari yang benar.
     const serverIndex = new Map<number, number>();
     days.filter((d) => d.working).forEach((d, i) => serverIndex.set(d.dow, i));
 
+    // Pesan error satu hari: cek browser dulu, kalau lolos baru pakai error dari server.
     const errorFor = (day: DayState): string | undefined => {
         const i = serverIndex.get(day.dow);
         return (
@@ -107,10 +138,12 @@ function WeekForm({
         );
     };
 
+    // Ada minimal satu hari yang tidak valid -> tombol Save dimatikan
     const hasClientError = days.some((d) => validateDay(d) !== null);
 
-    // Ask before a GET visit (changing practitioner, nav links) throws edits away.
-    // Saving is a PUT, so it is never blocked.
+    // Tanya konfirmasi sebelum perpindahan halaman (GET: ganti practitioner, klik menu)
+    // membuang perubahan yang belum disimpan. Simpan memakai PUT, jadi tidak pernah diblokir.
+    // Hanya aktif saat form "dirty" (ada perubahan); listener dilepas lewat nilai return.
     useEffect(() => {
         if (!form.isDirty) return;
 
@@ -122,6 +155,8 @@ function WeekForm({
         });
     }, [form.isDirty]);
 
+    // Ubah satu hari (centang atau jam) tanpa menyentuh hari lain.
+    // Error lama dihapus karena sudah tidak relevan dengan isian terbaru.
     const updateDay = (dow: number, patch: Partial<DayState>) => {
         form.clearErrors();
         form.setData(
@@ -131,10 +166,11 @@ function WeekForm({
     };
 
     const submit: FormEventHandler = (e) => {
-        e.preventDefault();
+        e.preventDefault(); // cegah browser me-reload halaman; Inertia yang mengirim request
         if (hasClientError) return;
 
-        // Send only the working days; the server deletes every day not in the list.
+        // Hanya hari kerja yang dikirim; server menghapus semua hari yang tidak ada di daftar.
+        // Bentuknya disesuaikan dengan yang diminta SyncSchedulesRequest.
         form.transform((data) => ({
             schedules: data.days
                 .filter((d) => d.working)
@@ -145,12 +181,15 @@ function WeekForm({
                 })),
         }));
         form.put(route('schedules.update', practitioner.id), {
-            preserveScroll: true,
-            // The saved state is the new baseline: not dirty, Discard has nothing to undo.
+            preserveScroll: true, // posisi scroll tidak lompat ke atas setelah simpan
+            // Data yang baru tersimpan menjadi patokan baru: form tidak lagi "dirty",
+            // sehingga tombol Discard dan peringatan keluar halaman mati.
             onSuccess: () => form.setDefaults(),
         });
     };
 
+    // Ringkasan di bawah form: jumlah hari kerja dan total jam per minggu.
+    // Hari yang jamnya tidak valid tidak ikut dihitung.
     const workingDays = days.filter((d) => d.working);
     const totalMinutes = workingDays.reduce((sum, d) => {
         const start = toMinutes(d.start_time);
@@ -161,11 +200,13 @@ function WeekForm({
     }, 0);
 
     return (
+        // noValidate: pesan error memakai validasi kita sendiri, bukan balon bawaan browser
         <form
             onSubmit={submit}
             noValidate
             className="overflow-hidden bg-white shadow-sm sm:rounded-lg"
         >
+            {/* Sumbu jam 00-24 di atas bar preview (disembunyikan di layar kecil dan dari screen reader) */}
             <div
                 aria-hidden="true"
                 className={`hidden gap-x-4 px-6 pb-1 pt-4 text-xs text-gray-500 sm:grid ${ROW_GRID}`}
@@ -179,14 +220,18 @@ function WeekForm({
                 </div>
             </div>
 
+            {/* Satu baris per hari, urut Senin..Minggu */}
             <ul className="divide-y divide-gray-100">
                 {days.map((day) => {
                     const label = DAYS.find((d) => d.dow === day.dow)!.label;
                     const error = errorFor(day);
                     const errorId = `day-${day.dow}-error`;
+                    // Atribut yang sama untuk input jam mulai dan selesai.
+                    // aria-invalid + aria-describedby menghubungkan input dengan pesan errornya
+                    // untuk pembaca layar.
                     const timeProps = (field: 'start_time' | 'end_time') => ({
                         type: 'time' as const,
-                        step: 300,
+                        step: 300, // kelipatan 5 menit
                         value: day[field],
                         onChange: (e: ChangeEvent<HTMLInputElement>) =>
                             updateDay(day.dow, { [field]: e.target.value }),
@@ -202,6 +247,7 @@ function WeekForm({
                             key={day.dow}
                             className={`grid gap-x-4 gap-y-2 px-6 py-4 sm:items-center ${ROW_GRID}`}
                         >
+                            {/* htmlFor: mengklik nama hari ikut mencentang checkbox */}
                             <label
                                 htmlFor={`working-${day.dow}`}
                                 className="flex items-center gap-3 text-sm font-medium text-gray-900"
@@ -218,6 +264,7 @@ function WeekForm({
                                 {label}
                             </label>
 
+                            {/* Hari kerja: dua input jam. Hari libur: tulisan "Off". */}
                             {day.working ? (
                                 <div className="flex items-center gap-2">
                                     <TextInput
@@ -238,6 +285,7 @@ function WeekForm({
 
                             <DayBar day={day} />
 
+                            {/* Pesan error hari ini (dari browser atau server), di bawah baris */}
                             {error && (
                                 <InputError
                                     id={errorId}
@@ -251,6 +299,7 @@ function WeekForm({
                 })}
             </ul>
 
+            {/* Footer: ringkasan di kiri, status dan tombol di kanan */}
             <div className="flex flex-col gap-3 border-t border-gray-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm tabular-nums text-gray-600">
                     {workingDays.length === 0
@@ -261,7 +310,8 @@ function WeekForm({
                 </p>
 
                 <div className="flex flex-wrap items-center gap-3">
-                    {/* Always rendered so screen readers announce changes; empty:sr-only keeps it out of the layout (no stray gap). */}
+                    {/* Selalu dirender agar perubahan teksnya diumumkan pembaca layar;
+                        empty:sr-only menjaganya tidak memakan ruang saat kosong (tidak ada celah ekstra). */}
                     <span
                         role="status"
                         className="text-sm text-gray-600 empty:sr-only"
@@ -275,6 +325,7 @@ function WeekForm({
                                 : ''}
                     </span>
 
+                    {/* Discard: kembalikan form ke data terakhir yang tersimpan */}
                     <SecondaryButton
                         onClick={() => {
                             form.reset();
@@ -284,6 +335,7 @@ function WeekForm({
                     >
                         Discard
                     </SecondaryButton>
+                    {/* Save aktif hanya jika ada perubahan, semua jam valid, dan tidak sedang menyimpan */}
                     <PrimaryButton
                         type="submit"
                         disabled={
@@ -298,8 +350,15 @@ function WeekForm({
     );
 }
 
+// Komponen halaman. Dipanggil oleh Inertia, yang mengisi parameternya dengan data dari
+// ScheduleWeekController::edit() (dibaca dari database, dikirim lewat Inertia::render).
+// Dua hal yang menyambungkannya: nama halaman 'Schedules/Edit' = lokasi file ini,
+// dan nama key di controller = nama variabel di parameter.
+// `: Props` hanya pemeriksaan tipe oleh TypeScript, bukan yang mengirim data.
 export default function Edit({ practitioners, practitioner, schedules }: Props) {
     return (
+        // AuthenticatedLayout menyediakan kerangka halaman (navbar, header, area konten);
+        // semua yang ada di dalamnya tampil sebagai isi halaman (children).
         <AuthenticatedLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800">
@@ -310,10 +369,12 @@ export default function Edit({ practitioners, practitioner, schedules }: Props) 
                 </h2>
             }
         >
+            {/* Mengatur judul tab browser */}
             <Head title="Schedules" />
 
             <div className="py-12">
                 <div className="mx-auto max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
+                    {/* null = klinik belum punya practitioner -> tampilkan keadaan kosong */}
                     {practitioner === null ? (
                         <section className="bg-white p-6 shadow-sm sm:rounded-lg">
                             <p className="text-sm text-gray-500">
@@ -329,6 +390,8 @@ export default function Edit({ practitioners, practitioner, schedules }: Props) 
                                 >
                                     Practitioner
                                 </label>
+                                {/* Ganti pilihan = minta halaman yang sama dengan ?practitioner=ID,
+                                    controller lalu mengirim jadwal practitioner itu */}
                                 <select
                                     id="practitioner"
                                     value={practitioner.id}
@@ -351,7 +414,8 @@ export default function Edit({ practitioners, practitioner, schedules }: Props) 
                                 </select>
                             </div>
 
-                            {/* key: remount on practitioner change so useForm re-initialises from the new props */}
+                            {/* key: dibuat ulang saat practitioner berganti, supaya useForm
+                                mengisi ulang dari props yang baru (tanpa key, isi lama tertinggal) */}
                             <WeekForm
                                 key={practitioner.id}
                                 practitioner={practitioner}
