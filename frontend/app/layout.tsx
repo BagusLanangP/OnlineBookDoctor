@@ -19,7 +19,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="id" className={jakarta.variable}>
+    // suppressHydrationWarning: skrip di <head> menambah kelas "js" ke <html> sebelum
+    // React hydrate, jadi className dari server dan klien sengaja berbeda.
+    <html lang="id" className={jakarta.variable} suppressHydrationWarning>
       <head>
         {/* Penanda "js aktif": animasi masuk hanya menyembunyikan konten
             kalau skrip benar-benar jalan, sehingga tanpa JS semuanya tetap terbaca. */}
