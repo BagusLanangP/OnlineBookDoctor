@@ -26,6 +26,9 @@
   --step-display: clamp(64px, 8.2vw, 148px);
 
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  /* Ease-out yang lebih tegas, untuk umpan balik tekan dan pesan yang muncul. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --error: #b3261e;
 }
 
 @theme inline {
@@ -84,33 +87,127 @@ a {
   color: var(--accent-ink);
   font-weight: 600;
   text-decoration: none;
-  transition: background-color 160ms var(--ease), translate 160ms var(--ease);
+  transition: background-color 160ms var(--ease), scale 160ms var(--ease-out),
+    opacity 160ms var(--ease);
 }
-.btn:hover {
-  background: var(--accent-deep);
+/* Hover hanya untuk perangkat dengan kursor; di layar sentuh hover menempel setelah tap. */
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled) {
+    background: var(--accent-deep);
+  }
 }
-.btn:active {
-  translate: 0 1px;
+.btn:active:not(:disabled) {
+  scale: 0.97;
+}
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 .btn--ink {
   background: var(--ink);
-}
-.btn--ink:hover {
-  background: #3a3930;
 }
 .btn--tone {
   background: var(--surface);
   color: var(--ink);
 }
-.btn--tone:hover {
-  background: #c8c7c2;
-}
 .btn--onblue {
   background: var(--paper);
   color: var(--ink);
 }
-.btn--onblue:hover {
+@media (hover: hover) and (pointer: fine) {
+  .btn--ink:hover:not(:disabled) {
+    background: #3a3930;
+  }
+  .btn--tone:hover:not(:disabled) {
+    background: #c8c7c2;
+  }
+  .btn--onblue:hover:not(:disabled) {
+    background: #fff;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Gerakan dikurangi, bukan dihilangkan: warna dan opacity tetap bertransisi. */
+  .btn:active:not(:disabled) {
+    scale: 1;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Form (halaman masuk): isian, pesan error, dan tombol yang sedang memproses.
+   ------------------------------------------------------------------ */
+.field {
+  min-height: 52px;
+  padding: 0 16px;
+  font-size: 17px;
+  color: var(--ink);
   background: #fff;
+  border: 1px solid #85847d;
+  border-radius: 14px;
+  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+}
+/* Fokus: cincin biru lembut (outline transparan tetap terlihat di mode kontras tinggi). */
+.field:focus-visible {
+  outline: 2px solid transparent;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+/* Autofill browser mewarnai input kuning; paksa tetap putih. */
+.field:-webkit-autofill,
+.field:-webkit-autofill:hover {
+  -webkit-text-fill-color: var(--ink);
+  box-shadow: 0 0 0 1000px #fff inset;
+}
+.field:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--ink);
+  box-shadow: 0 0 0 1000px #fff inset,
+    0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.field[aria-invalid="true"] {
+  border-color: var(--error);
+}
+.field[readonly] {
+  cursor: progress;
+}
+
+/* Pesan error: elemen baru memudar masuk (tinggi baris sudah dipesan, tidak ada lompatan). */
+.form-error {
+  color: var(--error);
+  transition: opacity 160ms var(--ease-out), translate 160ms var(--ease-out);
+}
+@starting-style {
+  .form-error {
+    opacity: 0;
+    translate: 0 -2px;
+  }
+}
+
+/* Label tombol: berganti dengan crossfade dan blur tipis supaya tidak terlihat dua teks bertumpuk. */
+.btn__label {
+  transition: opacity 180ms var(--ease), filter 180ms var(--ease);
+}
+@starting-style {
+  .btn__label {
+    opacity: 0;
+    filter: blur(2px);
+  }
+}
+.btn__spinner {
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 700ms linear infinite;
+}
+@keyframes btn-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn__spinner {
+    animation-duration: 1.6s;
+  }
 }
 
 /* ------------------------------------------------------------------
@@ -879,4 +976,109 @@ a {
   color: #111827;
   font-size: 14px;
   line-height: 1.4;
+}
+
+/* ------------------------------------------------------------------
+   Halaman masuk: dua bidang. Kiri bidang biru merek, kanan form di atas kertas.
+   Di ponsel bidang biru menjadi pita pendek di atas form.
+   ------------------------------------------------------------------ */
+.login {
+  display: grid;
+  gap: 12px;
+  min-height: 100svh;
+  padding: 12px;
+  background: var(--paper);
+}
+.login__brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 28px 28px 32px;
+  border-radius: 28px;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.login__logo {
+  align-self: flex-start;
+}
+.login__logo rect:first-child {
+  rx: 10px;
+}
+.login__statement {
+  font-size: clamp(32px, 5.2vw, 76px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.login__panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px var(--margin) 64px;
+}
+.login__form {
+  width: 100%;
+  max-width: 400px;
+}
+.login__title {
+  font-size: clamp(30px, 2.8vw, 40px);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  text-align: center;
+}
+.login__lede {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 17px;
+  color: var(--muted);
+}
+.login__label {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+}
+/* Tombol utama berbentuk pil, khusus halaman masuk. */
+.login__submit {
+  min-height: 52px;
+  border-radius: 999px;
+  font-size: 17px;
+}
+
+@media (min-width: 900px) {
+  .login {
+    grid-template-columns: 1fr 1fr;
+  }
+  .login__brand {
+    padding: 40px;
+  }
+  .login__panel {
+    padding: calc(var(--margin) * 2);
+  }
+}
+
+/* Masuk: logo/pernyataan, lalu judul, lalu form, berurutan naik 16px sekali saja. */
+@media (prefers-reduced-motion: no-preference) {
+  .login__logo,
+  .login__statement,
+  .login__title,
+  .login__lede,
+  .login__form form {
+    transition: opacity 480ms var(--ease-out), translate 480ms var(--ease-out);
+  }
+  .login__statement { transition-delay: 70ms; }
+  .login__title { transition-delay: 140ms; }
+  .login__lede { transition-delay: 210ms; }
+  .login__form form { transition-delay: 280ms; }
+  @starting-style {
+    .login__logo,
+    .login__statement,
+    .login__title,
+    .login__lede,
+    .login__form form {
+      opacity: 0;
+      translate: 0 16px;
+    }
+  }
 }

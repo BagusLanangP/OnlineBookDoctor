@@ -5,12 +5,13 @@
 // yang disimpan di browser; sesinya adalah cookie milik Laravel.
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { LogoMark } from "@/components/Logo";
 import { ApiError, api, ensureCsrfCookie } from "@/lib/api";
 
+// Gaya fokus, error, dan transisi ada di kelas .field (globals.css).
 const FIELD =
-  "mt-2 block w-full min-h-[52px] border-2 border-[var(--ink)] bg-white px-4 text-[var(--ink)] disabled:opacity-60";
+  "field mt-2 block w-full";
 
 // Ambil pesan yang layak ditampilkan dari error API.
 function messageFrom(err: unknown): string {
@@ -30,6 +31,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -47,25 +49,30 @@ export default function LoginPage() {
     } catch (err) {
       setError(messageFrom(err));
       setLoading(false);
+      // Setelah salah sandi, langkah berikutnya hampir selalu mengetik ulang sandi.
+      passwordRef.current?.focus();
     }
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-[var(--margin)] py-16">
-      <div className="w-full max-w-md bg-[var(--paper)] p-8 sm:p-10">
-        <Link href="/" aria-label="Praktika, ke beranda" className="inline-block">
-          <LogoMark size={40} />
+    <main className="login">
+      <aside className="login__brand">
+        <Link href="/" aria-label="Praktika, ke beranda" className="login__logo">
+          <LogoMark size={44} inverse />
         </Link>
-
-        <h1 className="mt-8 text-[length:var(--step-lead)] font-semibold">
-          Masuk ke Praktika
-        </h1>
-        <p className="mt-2 text-[length:var(--step-small)] text-[var(--muted)]">
-          Gunakan akun klinik Anda.
+        <p className="login__statement">
+          <span className="block">Satu slot,</span>
+          <span className="block">satu pasien.</span>
         </p>
+      </aside>
 
-        <form onSubmit={onSubmit} className="mt-8" noValidate>
-          <label htmlFor="email" className="block text-[length:var(--step-small)] font-semibold">
+      <section className="login__panel">
+        <div className="login__form">
+        <h1 className="login__title">Masuk ke Praktika</h1>
+        <p className="login__lede">Atur jadwal praktek dan booking klinik Anda.</p>
+
+        <form onSubmit={onSubmit} className="mt-10" noValidate>
+          <label htmlFor="email" className="login__label">
             Email
           </label>
           <input
@@ -76,17 +83,17 @@ export default function LoginPage() {
             required
             autoFocus
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={loading}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setError(null);
+            }}
+            readOnly={loading}
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? "login-error" : undefined}
             className={FIELD}
           />
 
-          <label
-            htmlFor="password"
-            className="mt-5 block text-[length:var(--step-small)] font-semibold"
-          >
+          <label htmlFor="password" className="login__label mt-5">
             Kata sandi
           </label>
           <input
@@ -95,29 +102,45 @@ export default function LoginPage() {
             type="password"
             autoComplete="current-password"
             required
+            ref={passwordRef}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={loading}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setError(null);
+            }}
+            readOnly={loading}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? "login-error" : undefined}
             className={FIELD}
           />
 
+          {/* Wadah error selalu ada (tinggi dipesan, role="alert"); isinya memudar masuk. */}
           <p
             id="login-error"
             role="alert"
-            className="mt-5 min-h-[1.4em] text-[length:var(--step-small)] font-semibold text-[#b3261e]"
+            className="mt-3 min-h-[1.4em] text-center text-[14px] font-semibold"
           >
-            {error}
+            {error && (
+              <span key={error} className="form-error block">
+                {error}
+              </span>
+            )}
           </p>
 
           <button
             type="submit"
             disabled={loading || !email || !password}
-            className="btn mt-4 w-full disabled:cursor-not-allowed disabled:opacity-60"
+            aria-busy={loading}
+            className="btn login__submit mt-4 w-full"
           >
-            {loading ? "Memproses…" : "Masuk"}
+            {loading && <span className="btn__spinner" aria-hidden="true" />}
+            <span key={loading ? "loading" : "idle"} className="btn__label">
+              {loading ? "Memproses…" : "Masuk"}
+            </span>
           </button>
         </form>
-      </div>
+        </div>
+      </section>
     </main>
   );
 }
