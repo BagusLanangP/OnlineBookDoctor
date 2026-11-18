@@ -40,16 +40,27 @@ class LoginRequest extends FormRequest
      */
     public function authenticate(): void
     {
+        // 1. Gerbang anti brute-force: kalau kombinasi email|IP ini sudah gagal
+        //    5 kali, langsung lempar error 422 dan berhenti di sini.
         $this->ensureIsNotRateLimited();
 
+        // 2. Cek email + password ke database. Jika cocok, Laravel menyimpan
+        //    user ke sesi (login). Argumen kedua = centang "ingat saya"
+        //    (cookie remember-me); bernilai false bila field `remember` tidak dikirim.
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+            // 3. Gagal: tambah hitungan percobaan gagal untuk kunci ini.
             RateLimiter::hit($this->throttleKey());
 
+            // Pesan sengaja umum ("email atau password salah"), tidak membedakan
+            // email tak terdaftar vs password salah, agar email tidak bisa ditebak.
+            // Dipasang di field `email` supaya frontend menampilkannya di sana (422).
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
             ]);
         }
 
+        // 4. Berhasil: reset hitungan gagal, jadi salah ketik sesekali tidak
+        //    menumpuk menjadi penguncian.
         RateLimiter::clear($this->throttleKey());
     }
 
