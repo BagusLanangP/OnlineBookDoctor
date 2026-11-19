@@ -45,7 +45,7 @@ export default function LoginPage() {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
-      router.push("/akun");
+      router.push("/bookings");
     } catch (err) {
       setError(messageFrom(err));
       setLoading(false);
