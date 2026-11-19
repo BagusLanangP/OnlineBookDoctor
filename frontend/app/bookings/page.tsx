@@ -16,7 +16,18 @@
 //
 // Kode ini berjalan di BROWSER ("use client"), dan data diambil dari Laravel
 // lewat lib/booking-api.ts -> lib/api.ts. Gaya ada di globals.css (kelas bk__*).
-import Link from "next/link";
+//
+// Istilah React yang dipakai di file ini:
+//  - Komponen  : fungsi yang mengembalikan tampilan (JSX). Contoh: Shell, BookingsView.
+//  - Props     : masukan komponen, ditulis seperti atribut HTML: <Shell clinicName="...">.
+//  - useState  : "ingatan" komponen. Saat nilainya diubah lewat setter (setFilters dll.),
+//                React menggambar ulang komponen dengan nilai baru.
+//  - useEffect : kode yang dijalankan SETELAH tampilan digambar, misalnya mengambil data.
+//                Ia berjalan lagi bila salah satu nilai di daftar dependensinya berubah.
+//  - useRef    : kotak nilai yang tidak memicu gambar ulang dan langsung berubah
+//                (tidak menunggu render berikutnya).
+//  - useRouter : alat pindah halaman dari kode, contoh router.replace("/login").
+import Link from "next/link"; // <Link> = tautan antarhalaman Next.js tanpa muat ulang penuh
 import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { LogoMark } from "@/components/Logo";
@@ -39,6 +50,8 @@ import {
   markCompleted,
 } from "@/lib/booking-api";
 
+// Bentuk balasan GET /api/user (lihat AuthController::me di Laravel).
+// `clinic` bisa null bila akun belum terhubung ke klinik.
 type Clinic = { id: number; name: string; timezone: string };
 type Me = {
   user: { id: number; name: string; email: string };
@@ -48,7 +61,9 @@ type Me = {
 const PER_PAGE = 20; // sama dengan paginate(20) di Laravel
 const STATUS_OPTIONS: BookingStatus[] = ["confirmed", "completed", "cancelled"];
 
-// Pilihan tab status: "Semua" + tiga status.
+// Pilihan tab status: "Semua" + tiga status. `...STATUS_OPTIONS.map(...)`
+// (tiga titik = spread) menuangkan isi array hasil map ke dalam array ini,
+// jadi hasil akhirnya empat objek {value, label} berderet.
 const STATUS_FILTERS: { value: BookingFilters["status"]; label: string }[] = [
   { value: "", label: "Semua" },
   ...STATUS_OPTIONS.map((s) => ({ value: s, label: STATUS_LABEL[s] })),
@@ -63,6 +78,9 @@ function longDate(date: string): string {
 }
 
 // "6281234560105" -> "+62 812-3456-0105". Nomor lain ditampilkan apa adanya.
+// Regex ^62(\d{3})(\d{4})(\d+)$ memecah nomor jadi tiga kelompok angka
+// setelah "62"; m[1], m[2], m[3] adalah isi tiap kelompok. Bila tidak cocok,
+// `m` bernilai null dan nomor asli dikembalikan.
 function formatPhone(phone: string): string {
   const m = phone.match(/^62(\d{3})(\d{4})(\d+)$/);
   return m ? `+62 ${m[1]}-${m[2]}-${m[3]}` : phone;
@@ -84,6 +102,10 @@ function Chevron({ dir }: { dir: "left" | "right" }) {
 }
 
 // Bingkai aplikasi: top bar di atas bingkai batu, isi di satu lembar putih.
+// `children` adalah apa pun yang ditulis di antara <Shell> dan </Shell>;
+// Shell membungkusnya tanpa perlu tahu isinya. Tanda `?` pada clinicName dan
+// userName berarti boleh tidak diisi (saat halaman masih memuat).
+// aria-current="page" memberi tahu pembaca layar bahwa tautan ini halaman saat ini.
 function Shell({
   clinicName,
   userName,
@@ -119,6 +141,10 @@ function Shell({
 
 // Baris kerangka saat data pertama dimuat: tata letak sudah final, setiap
 // nilai diganti batang abu seukuran aslinya (tanpa kilau).
+// `{ rows = 5 }` = props dengan nilai bawaan 5 bila tidak diisi.
+// Array.from({ length: rows }, ...) membuat array sepanjang `rows` lalu
+// memetakannya menjadi <tr>. aria-hidden menyembunyikannya dari pembaca layar
+// (mereka mendengar "Memuat…" saja).
 function SkeletonRows({ rows = 5 }: { rows?: number }) {
   return (
     <tbody aria-hidden="true">
@@ -147,6 +173,9 @@ function SkeletonRows({ rows = 5 }: { rows?: number }) {
   );
 }
 
+// Kepala tabel, dipakai saat memuat maupun saat data sudah ada, supaya kolom
+// tidak bergeser. Kolom aksi tidak punya judul yang terlihat; "Aksi" tetap ada
+// untuk pembaca layar lewat kelas sr-only-text.
 function TableHead() {
   return (
     <thead>
@@ -171,19 +200,30 @@ function TableHead() {
 // ---------------------------------------------------------------------------
 // Tahap 1: memuat data dasar (user + dokter)
 // ---------------------------------------------------------------------------
+// `export default` = komponen utama file ini. Next.js memakainya sebagai isi
+// rute /bookings karena file ini bernama app/bookings/page.tsx.
 export default function BookingsPage() {
   const router = useRouter();
   // Satu state dengan tiga kemungkinan bentuk; `kind` menentukan isinya.
+  // Tanda `|` berarti "salah satu dari": memuat, error (dengan pesan), atau
+  // siap (dengan data). TypeScript memastikan kita tidak membaca `clinic`
+  // sebelum `kind` bernilai "ready".
   const [state, setState] = useState<
     | { kind: "loading" }
     | { kind: "error"; message: string }
     | { kind: "ready"; me: Me; clinic: Clinic; practitioners: Practitioner[] }
   >({ kind: "loading" });
 
+  // Efek ini berjalan sekali setelah halaman pertama kali tampil (dependensinya
+  // hanya `router`, yang tidak berubah).
   useEffect(() => {
     // `alive` mencegah memperbarui state setelah halaman ditinggalkan.
+    // Fungsi yang dikembalikan di bagian bawah (`return () => {...}`) adalah
+    // "pembersih": React memanggilnya saat komponen dilepas.
     let alive = true;
     // Dua permintaan dijalankan bersamaan; hasilnya datang bersama-sama.
+    // Promise.all menunggu keduanya; bila salah satu gagal, langsung ke .catch.
+    // `([me, practitioners])` membongkar array hasil jadi dua variabel.
     Promise.all([api<Me>("/user"), fetchPractitioners()])
       .then(([me, practitioners]) => {
         if (!alive) return;
@@ -195,6 +235,9 @@ export default function BookingsPage() {
       })
       .catch((err) => {
         if (!alive) return;
+        // 401 = belum login / sesi habis -> ke halaman masuk.
+        // 403 = login, tetapi middleware has.clinic menolak (akun tanpa klinik).
+        // Selain itu (server mati, jaringan putus) -> pesan umum.
         if (err instanceof ApiError && err.status === 401) {
           router.replace("/login");
         } else if (err instanceof ApiError && err.status === 403) {
@@ -211,6 +254,9 @@ export default function BookingsPage() {
     };
   }, [router]);
 
+  // Belum siap: tampilkan judul + kerangka (saat memuat) atau pesan error.
+  // `a ? b : c` di JSX artinya "jika a tampilkan b, kalau tidak tampilkan c".
+  // `<>...</>` (Fragment) membungkus beberapa elemen tanpa menambah tag HTML.
   if (state.kind !== "ready") {
     return (
       <Shell>
@@ -233,6 +279,9 @@ export default function BookingsPage() {
       </Shell>
     );
   }
+  // Siap: zona waktu klinik dan daftar dokter diteruskan sebagai props ke
+  // BookingsView. Dengan dipisah begini, BookingsView tidak perlu memikirkan
+  // keadaan "belum ada klinik" sama sekali.
   return (
     <Shell clinicName={state.clinic.name} userName={state.me.user.name}>
       <BookingsView clinic={state.clinic} practitioners={state.practitioners} />
@@ -254,6 +303,9 @@ function BookingsView({
   const tz = clinic.timezone;
 
   // Filter yang sedang aktif. Nilai awal: hari ini menurut zona waktu KLINIK.
+  // useState mengembalikan pasangan [nilai, pengubahnya]. Nilai awal ditulis
+  // sebagai fungsi `() => ({...})` supaya todayIn() hanya dihitung sekali,
+  // bukan di setiap render.
   const [filters, setFilters] = useState<BookingFilters>(() => ({
     date: todayIn(tz),
     status: "",
@@ -272,10 +324,16 @@ function BookingsView({
   const [confirmId, setConfirmId] = useState<number | null>(null); // baris yang menunggu konfirmasi batal
   const [busyId, setBusyId] = useState<number | null>(null); // baris yang sedang diproses
   const [actionError, setActionError] = useState<string | null>(null);
-  const busyRef = useRef(false); // penjaga klik ganda yang berlaku seketika
+  // Penjaga klik ganda. Kenapa useRef, bukan state? Perubahan state baru
+  // terlihat di render berikutnya, jadi dua klik super cepat bisa sama-sama
+  // lolos. Ref berubah seketika, sehingga klik kedua langsung tertahan.
+  const busyRef = useRef(false);
 
   // Kunci permintaan = filter + penghitung muat-ulang. Kalau hasil yang
   // tersimpan bukan untuk kunci ini, berarti data sedang dimuat.
+  // Dengan cara ini "sedang memuat" tidak perlu state terpisah: ia dihitung
+  // dari perbandingan kunci (dan aturan React 19 melarang mengubah state
+  // langsung di dalam useEffect).
   const key = `${JSON.stringify(filters)}#${reloadKey}`;
   const current = result?.key === key ? result : null;
   const loading = current === null;
@@ -295,6 +353,8 @@ function BookingsView({
         )
       : undefined;
 
+  // Pengambilan daftar booking. Dependensinya [filters, key, router]: setiap
+  // kali filter berubah atau reloadKey naik (key ikut berubah), efek ini jalan lagi.
   useEffect(() => {
     // Setiap kali filter berubah, efek ini berjalan lagi dan efek sebelumnya
     // dibersihkan (alive = false). Jadi respons lama yang datang terlambat
@@ -325,6 +385,11 @@ function BookingsView({
   }, [filters, key, router]);
 
   // Mengubah filter selalu kembali ke halaman 1 (kecuali yang diubah memang halaman).
+  // `Partial<BookingFilters>` = objek berisi sebagian field saja, contoh
+  // change({ status: "completed" }). `{ ...f, ...patch }` menyalin filter lama
+  // lalu menimpa field yang ada di `patch`. `patch.page ?? 1` berarti "pakai
+  // patch.page bila ada, kalau tidak 1". setFilters menerima fungsi (f) => ...
+  // supaya selalu memakai nilai filter terbaru.
   function change(patch: Partial<BookingFilters>) {
     setConfirmId(null);
     setActionError(null);
@@ -332,6 +397,10 @@ function BookingsView({
   }
 
   // Menjalankan aksi pada satu booking. Hanya satu aksi pada satu waktu.
+  // `action` adalah fungsi yang memanggil API, contoh () => markCompleted(id).
+  // Alurnya: kunci (busyRef + busyId) -> tunggu API (`await`) -> bila sukses,
+  // tutup konfirmasi dan naikkan reloadKey agar daftar dimuat ulang -> bila
+  // gagal, tampilkan pesan -> `finally` selalu membuka kunci, sukses atau gagal.
   async function run(id: number, action: () => Promise<unknown>) {
     if (busyRef.current) return;
     busyRef.current = true;
@@ -365,10 +434,20 @@ function BookingsView({
           .map(([s, n]) => `${n} ${STATUS_LABEL[s].toLowerCase()}`)
       : null;
 
+  // Semua tombol aksi nonaktif selama daftar dimuat atau ada aksi berjalan.
   const disabled = loading || busyId !== null;
+  // Rentang baris untuk paginasi, contoh halaman 2 berisi 21–40.
   const from = data ? (data.current_page - 1) * PER_PAGE + 1 : 0;
   const to = data ? from + data.data.length - 1 : 0;
 
+  // Susunan tampilan (dari atas ke bawah):
+  //  1. Baris judul: judul, tanggal + ringkasan, pasien berikutnya | navigasi tanggal.
+  //  2. Tab status.
+  //  3. Toolbar: pilihan dokter | jumlah booking.
+  //  4. Isi: error, kosong, atau tabel (kerangka saat memuat) + paginasi.
+  // Di JSX, `{kondisi && <X />}` berarti "tampilkan X hanya bila kondisi benar",
+  // dan `.map(...)` mengubah setiap data menjadi elemen; `key` wajib unik
+  // supaya React tahu baris mana yang berubah.
   return (
     <>
       <div className="bk__titlerow">
@@ -394,6 +473,10 @@ function BookingsView({
           )}
         </div>
 
+        {/* Navigasi tanggal. Tombol ikon tidak punya teks, jadi aria-label
+            memberi namanya untuk pembaca layar. Input tanggal mengirim ""
+            saat dikosongkan; `e.target.value && ...` mengabaikan nilai kosong.
+            "Hari ini" nonaktif bila tanggal yang dilihat sudah hari ini. */}
         <div className="bk__daynav">
           <button
             type="button"
@@ -429,7 +512,9 @@ function BookingsView({
         </div>
       </div>
 
-      {/* Tab status: garis bawah aksen pada tab yang aktif. */}
+      {/* Tab status: garis bawah aksen pada tab yang aktif. aria-pressed
+          (true/false) menandai tab terpilih, dan CSS memakai atribut yang sama
+          untuk menggambar garisnya, jadi tampilan dan aksesibilitas selalu cocok. */}
       <div className="bk__tabs" role="group" aria-label="Status booking">
         {STATUS_FILTERS.map((o) => (
           <button
@@ -444,6 +529,8 @@ function BookingsView({
         ))}
       </div>
 
+      {/* Pilihan dokter. Nilai <option> selalu string, makanya practitionerId
+          disimpan sebagai string ("" = semua dokter). */}
       <div className="bk__toolbar">
         <select
           aria-label="Dokter"
@@ -461,10 +548,14 @@ function BookingsView({
         {data && <p className="bk__count">{data.total} booking</p>}
       </div>
 
+      {/* Pesan gagal aksi. Elemen selalu ada (hanya disembunyikan) supaya
+          role="alert" langsung dibacakan saat pesannya muncul. */}
       <p role="alert" className="bk__alert" hidden={!actionError}>
         {actionError}
       </p>
 
+      {/* Isi utama, satu dari tiga: error -> kosong -> tabel. `current?.error`
+          (tanda ?. = aman bila current null) dicek dulu. */}
       {current?.error ? (
         <div className="bk__error" role="alert">
           <span>{current.error}</span>
@@ -483,6 +574,8 @@ function BookingsView({
           <table className="bk__table">
             <caption className="sr-only-text">Daftar booking {longDate(filters.date)}</caption>
             <TableHead />
+            {/* Belum pernah ada data -> kerangka. Sudah ada data tetapi sedang
+                memuat ulang -> data lama tetap tampil, diredupkan (is-busy). */}
             {!data ? (
               <SkeletonRows />
             ) : (
@@ -497,6 +590,9 @@ function BookingsView({
                       <strong>{b.patient_name}</strong>
                       <span className="bk__phone">{formatPhone(b.patient_phone)}</span>
                     </td>
+                    {/* Alasan ditulis dua kali: sebagai baris kedua di sel dokter
+                        (tampil di tablet) dan sebagai kolom sendiri (desktop).
+                        CSS memilih mana yang terlihat sesuai lebar layar. */}
                     <td className="bk__c-doc">
                       {b.practitioner.name}
                       <span className="bk__reason-sub">{b.visit_reason}</span>
@@ -507,6 +603,11 @@ function BookingsView({
                         {STATUS_LABEL[b.status]}
                       </span>
                     </td>
+                    {/* Aksi, tiga kemungkinan: bukan "confirmed" -> kosong;
+                        baris ini sedang dikonfirmasi -> "Batalkan booking ini?";
+                        selain itu -> tombol Selesai + Batal. `key` yang berbeda
+                        ("ask"/"idle") membuat React membuat elemen baru, sehingga
+                        animasi masuk konfirmasi diputar. */}
                     <td className="bk__c-act">
                       {b.status !== "confirmed" ? null : confirmId === b.id ? (
                         // Konfirmasi batal: muncul halus (kelas --ask), dua pilihan jelas.
@@ -558,6 +659,7 @@ function BookingsView({
             )}
           </table>
 
+          {/* Paginasi hanya muncul bila lebih dari satu halaman (> 20 booking). */}
           {data && data.last_page > 1 && (
             <nav className="bk__pager" aria-label="Halaman daftar booking">
               <span>
