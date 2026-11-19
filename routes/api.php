@@ -33,6 +33,7 @@
 // panjang. `use` adalah alias: PHP mengartikan `Route::` sebagai
 // `Illuminate\Support\Facades\Route::`.
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\PractitionerController;
 use App\Http\Controllers\BookingController;
 use Illuminate\Support\Facades\Route;
 
@@ -65,5 +66,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/bookings', [BookingController::class, 'store']);
         Route::put('/bookings/{booking}', [BookingController::class, 'update']);
         Route::delete('/bookings/{booking}', [BookingController::class, 'destroy']);
+
+        // Daftar dokter klinik untuk dropdown filter.
+        Route::get('/practitioners', [PractitionerController::class, 'index']);
     });
 });

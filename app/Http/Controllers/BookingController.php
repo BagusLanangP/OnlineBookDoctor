@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IndexBookingRequest;
 use App\Http\Requests\StoreBookingRequest;
 use App\Http\Requests\UpdateBookingRequest;
 use App\Models\Booking;
@@ -11,17 +12,17 @@ use Illuminate\Http\Request;
 
 class BookingController extends Controller
 {
-    public function index(Request $request, BookingService $bookings): JsonResponse
+    public function index(IndexBookingRequest $request, BookingService $bookings): JsonResponse
     {
-        // Controller hanya: ambil data dari request -> panggil service -> balas.
-        // Tidak ada lagi Booking:: di method ini.
-        $result = $bookings->list(
-            $request->user()->clinic->id,
+        $clinic = $request->user()->clinic;
+
+        return response()->json($bookings->list(
+            $clinic->id,
+            $clinic->timezone,
             $request->query('status'),
             $request->query('practitioner_id'),
-        );
-
-        return response()->json($result);
+            $request->validated('date'),
+        ));
     }
 
     public function store(StoreBookingRequest $request, BookingService $service): JsonResponse

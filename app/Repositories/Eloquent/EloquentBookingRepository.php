@@ -15,18 +15,21 @@ class EloquentBookingRepository implements BookingRepositoryInterface
         int $clinicId,
         ?string $status,
         ?string $practitionerId,
+        ?CarbonInterface $from = null,
+        ?CarbonInterface $to = null,
     ): LengthAwarePaginator {
-        // Ini PERSIS query yang sekarang ada di BookingController::index.
-        // Cukup dipindah, jangan diubah isinya.
+        // $from/$to dalam UTC; rentang setengah terbuka [from, to).
         return Booking::query()
             ->whereHas('practitioner', fn ($q) => $q->where('clinic_id', $clinicId))
             ->when($status, fn ($q, $s) => $q->where('status', $s))
+            ->when($from, fn ($q, $f) => $q->where('booked_time', '>=', $f))
+            ->when($to, fn ($q, $t) => $q->where('booked_time', '<', $t))
             ->when($practitionerId, fn ($q, $id) => $q->where('practitioner_id', $id))
             ->with('practitioner:id,name')
             ->orderBy('booked_time')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
     }
-
 
     public function updateStatus(Booking $booking, string $status): Booking
     {
