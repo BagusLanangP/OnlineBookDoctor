@@ -1082,3 +1082,522 @@ a {
     }
   }
 }
+
+/* ------------------------------------------------------------------
+   Halaman booking (Task 9c), gaya "framed sheet": bingkai batu Praktika
+   (top bar) membungkus satu lembar putih tempat semua isi bekerja. Tanpa
+   bayangan, tanpa kaca: kedalaman dari satu langkah warna dan garis 1px.
+   Warna aksen hanya pada data: garis tab aktif dan pasien berikutnya.
+   Gerak hanya umpan balik tekan; ganti tanggal/filter tidak dianimasikan
+   karena dipakai puluhan kali sehari.
+   ------------------------------------------------------------------ */
+.bk {
+  --frame: var(--paper);
+  --sheet: #ffffff;
+  --edge: #e4e2dc;
+  --rule: #efeee9;
+  --control: #d4d2cb;
+  --text: var(--ink);
+  --pos-bg: #dcfae5;
+  --pos-ink: #0f5130;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: 0 8px 8px;
+  background: var(--frame);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* Top bar: 48px di atas bingkai, tanpa garis pemisah. */
+.bk__top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 48px;
+  padding: 0 12px;
+}
+.bk__brand {
+  display: flex;
+  line-height: 0;
+}
+.bk__brand rect:first-child {
+  rx: 7px;
+}
+.bk__scope {
+  font-weight: 600;
+}
+.bk__nav {
+  display: flex;
+  gap: 4px;
+  margin-left: 12px;
+}
+.bk__navlink {
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: background-color 120ms var(--ease), color 120ms var(--ease);
+}
+.bk__navlink[aria-current="page"] {
+  background: #e4e2dc;
+  color: var(--text);
+  font-weight: 500;
+}
+@media (hover: hover) and (pointer: fine) {
+  .bk__navlink:hover {
+    color: var(--text);
+  }
+}
+.bk__user {
+  margin-left: auto;
+  color: var(--muted);
+}
+
+/* Lembar putih. */
+.bk__sheet {
+  flex: 1;
+  padding: 24px;
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  background: var(--sheet);
+}
+.bk__inner {
+  max-width: 1160px;
+  margin-inline: auto;
+}
+
+/* Baris judul: judul + tanggal + temuan di kiri, navigasi tanggal di kanan. */
+.bk__titlerow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.bk__h1 {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.bk__sub {
+  margin-top: 2px;
+  color: var(--muted);
+}
+.bk__next {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.bk__next::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.bk__next b {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.bk__daynav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Kontrol: satu tinggi (36px), garis 1px, sudut 8px. */
+.bk__ctl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--control);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-weight: 500;
+  transition: background-color 120ms var(--ease), scale 160ms var(--ease-out);
+}
+.bk__ctl--icon {
+  width: 36px;
+  padding: 0;
+}
+@media (hover: hover) and (pointer: fine) {
+  .bk__ctl:hover:not(:disabled) {
+    background: #f7f6f3;
+  }
+}
+.bk__ctl:active:not(:disabled) {
+  scale: 0.97;
+}
+.bk__ctl:disabled {
+  color: var(--muted);
+  cursor: default;
+  opacity: 0.55;
+}
+.bk__ctl--dark {
+  border-color: var(--text);
+  background: var(--text);
+  color: #fff;
+}
+@media (hover: hover) and (pointer: fine) {
+  .bk__ctl--dark:hover:not(:disabled) {
+    background: #3a3930;
+  }
+}
+.bk__ctl--sm {
+  min-height: 32px;
+  padding: 0 12px;
+}
+select.bk__ctl {
+  appearance: none;
+  min-width: 200px;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='m1 1 4 4 4-4' stroke='%235f5d55' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+input[type="date"].bk__ctl {
+  font-variant-numeric: tabular-nums;
+}
+.bk__textbtn {
+  min-height: 32px;
+  padding: 0 8px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-weight: 500;
+  transition: color 120ms var(--ease), background-color 120ms var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .bk__textbtn:hover:not(:disabled) {
+    background: #f4f3ef;
+    color: var(--text);
+  }
+}
+.bk__textbtn:disabled {
+  opacity: 0.55;
+}
+
+/* Tab status: garis bawah 2px pada garis penuh 1px. */
+.bk__tabs {
+  display: flex;
+  gap: 24px;
+  margin-top: 20px;
+  border-bottom: 1px solid var(--edge);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.bk__tab {
+  position: relative;
+  flex: none;
+  padding: 10px 0 12px;
+  color: var(--muted);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 120ms var(--ease);
+}
+.bk__tab[aria-pressed="true"] {
+  color: var(--text);
+}
+.bk__tab[aria-pressed="true"]::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .bk__tab:hover {
+    color: var(--text);
+  }
+}
+
+.bk__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+.bk__count {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.bk__alert {
+  margin-top: 12px;
+  color: var(--negative, #c4242a);
+  font-weight: 500;
+}
+.bk__alert[hidden] {
+  display: none;
+}
+
+/* Tabel: tanpa kartu, header abu kecil tanpa garis, baris dipisah garis 1px. */
+.bk__table {
+  width: 100%;
+  margin-top: 8px;
+  border-collapse: collapse;
+  text-align: left;
+}
+.bk__table th {
+  padding: 10px 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+.bk__table td {
+  padding: 12px;
+  border-top: 1px solid var(--rule);
+  vertical-align: middle;
+}
+.bk__table th:first-child,
+.bk__table td:first-child {
+  padding-left: 4px;
+}
+.bk__table th:last-child,
+.bk__table td:last-child {
+  padding-right: 4px;
+  text-align: right;
+}
+.bk__table tbody {
+  transition: opacity 160ms var(--ease);
+}
+.bk__table tbody.is-busy {
+  opacity: 0.55;
+}
+.bk__c-time {
+  width: 72px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.bk__table th.bk__c-time {
+  text-align: right;
+}
+.bk__c-name strong {
+  display: block;
+  font-weight: 600;
+}
+.bk__phone {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.bk__c-reason {
+  color: var(--muted);
+}
+.bk__nowrap,
+.bk__phone,
+.bk__c-time,
+.bk__c-doc {
+  white-space: nowrap;
+}
+.bk__reason-sub {
+  display: none;
+  color: var(--muted);
+  font-size: 13px;
+  white-space: normal;
+}
+/* Tablet: alasan pindah ke baris kedua di bawah dokter, kolomnya disembunyikan. */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .bk__table .bk__c-reason {
+    display: none;
+  }
+  .bk__reason-sub {
+    display: block;
+  }
+}
+.bk__nexttag {
+  display: block;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 500;
+}
+.bk__table tr.is-next .bk__c-time {
+  color: var(--accent);
+}
+.bk__pill {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.bk__pill--confirmed {
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+}
+.bk__pill--completed {
+  background: var(--pos-bg);
+  color: var(--pos-ink);
+}
+.bk__pill--cancelled {
+  background: #f1f0ec;
+  color: var(--muted);
+}
+.bk__actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.bk__ask {
+  margin-right: 4px;
+  font-weight: 500;
+}
+/* Konfirmasi batal: muncul halus (jarang terjadi, jadi boleh bergerak). */
+@media (prefers-reduced-motion: no-preference) {
+  .bk__actions--ask {
+    transition: opacity 160ms var(--ease-out), filter 160ms var(--ease-out);
+  }
+  @starting-style {
+    .bk__actions--ask {
+      opacity: 0;
+      filter: blur(2px);
+    }
+  }
+}
+
+/* Keadaan kosong, error, memuat: bingkai tabel tetap, satu kalimat. */
+.bk__empty,
+.bk__error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin-top: 12px;
+  padding: 12px 16px;
+  border: 1px dashed var(--control);
+  border-radius: 8px;
+  color: var(--muted);
+}
+.bk__error {
+  border-style: solid;
+  border-color: #f3c9c4;
+  color: #831c1e;
+}
+.bk__bar {
+  display: block;
+  height: 12px;
+  border-radius: 4px;
+  background: #f1f0ec;
+}
+
+.bk__pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.bk__pager div {
+  display: flex;
+  gap: 8px;
+}
+
+/* Ponsel dan tablet kecil: bingkai hilang, lembar jadi layar; baris jadi item dua-tiga baris. */
+@media (max-width: 640px) {
+  .bk {
+    padding: 0;
+  }
+  .bk__top {
+    padding: 0 16px;
+  }
+  .bk__nav {
+    display: none;
+  }
+  .bk__sheet {
+    padding: 20px 16px;
+    border: 0;
+    border-radius: 0;
+  }
+  .bk__h1 {
+    font-size: 22px;
+  }
+  .bk__titlerow {
+    align-items: stretch;
+  }
+  .bk__daynav {
+    width: 100%;
+  }
+  .bk__daynav input {
+    flex: 1;
+  }
+  .bk__toolbar select {
+    flex: 1;
+    min-width: 0;
+  }
+  .bk__table thead {
+    display: none;
+  }
+  .bk__table,
+  .bk__table tbody {
+    display: block;
+  }
+  .bk__table tr {
+    display: grid;
+    grid-template-columns: 64px 1fr auto;
+    grid-template-areas:
+      "time name status"
+      "time doc doc"
+      "time reason reason"
+      "time act act";
+    column-gap: 12px;
+    padding: 14px 0;
+    border-top: 1px solid var(--rule);
+  }
+  .bk__table td,
+  .bk__table td:first-child,
+  .bk__table td:last-child {
+    padding: 0;
+    border: 0;
+    text-align: left;
+  }
+  .bk__table td.bk__c-time {
+    grid-area: time;
+    width: auto;
+    text-align: right;
+  }
+  .bk__c-name {
+    grid-area: name;
+  }
+  .bk__c-doc {
+    grid-area: doc;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .bk__c-reason {
+    grid-area: reason;
+    font-size: 13px;
+  }
+  .bk__c-status {
+    grid-area: status;
+  }
+  .bk__c-act {
+    grid-area: act;
+  }
+  .bk__c-act:empty {
+    display: none;
+  }
+  .bk__actions {
+    justify-content: flex-start;
+    margin-top: 8px;
+  }
+}
