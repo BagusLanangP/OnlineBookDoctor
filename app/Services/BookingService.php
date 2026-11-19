@@ -11,9 +11,6 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-
-
-
 class BookingService
 {
     // Service meminta INTERFACE, bukan class Eloquent.
@@ -25,12 +22,27 @@ class BookingService
         private AvailabilityService $availability,
     ) {}
 
-
     // Nama "list" menjawab pertanyaan bisnis, bukan teknis.
     // Sekarang isinya hanya meneruskan; itu normal dan memang bagian dari pola ini.
-    public function list(int $clinicId, ?string $status, ?string $practitionerId): LengthAwarePaginator
-    {
-        return $this->bookings->search($clinicId, $status, $practitionerId);
+    public function list(
+        int $clinicId,
+        string $timezone,
+        ?string $status,
+        ?string $practitionerId,
+        ?string $date,
+    ): LengthAwarePaginator {
+        $from = $to = null;
+
+        // $date adalah tanggal kalender klinik (Y-m-d). Booking tersimpan dalam UTC,
+        // jadi ubah ke rentang UTC setengah terbuka [from, to). addDay()->startOfDay()
+        // (bukan +24 jam) supaya benar juga di zona waktu ber-DST.
+        if ($date !== null) {
+            $startLocal = Carbon::parse($date, $timezone)->startOfDay();
+            $from = $startLocal->copy()->utc();
+            $to = $startLocal->copy()->addDay()->startOfDay()->utc();
+        }
+
+        return $this->bookings->search($clinicId, $status, $practitionerId, $from, $to);
     }
 
     public function updateStatus(Booking $booking, string $status): Booking
