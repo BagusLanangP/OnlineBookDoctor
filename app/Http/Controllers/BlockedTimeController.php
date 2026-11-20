@@ -38,14 +38,27 @@ class BlockedTimeController extends Controller
 
         // Decision #3: warn, don't cancel. A booking is a point in time, so it
         // is "inside" the block if it starts in [start, end).
-        $conflicts = Booking::active()
+        // Only `confirmed` bookings: those are the patients the clinic may need
+        // to contact. `completed`/`cancelled` need no action.
+        $conflictQuery = Booking::where('status', 'confirmed')
             ->where('practitioner_id', $practitioner->id)
             ->where('booked_time', '>=', $start)
-            ->where('booked_time', '<', $end)
-            ->count();
+            ->where('booked_time', '<', $end);
+
+        // The list is capped at 50 so a long leave can't return a huge payload;
+        // `conflicting_bookings` is the full count. `clone` just stops the
+        // orderBy/limit from changing the shared base query (the count itself
+        // is unaffected by LIMIT, since it returns a single row).
+        $conflicts = (clone $conflictQuery)
+            ->orderBy('booked_time')
+            ->limit(50)
+            ->get(['id', 'patient_name', 'patient_phone', 'booked_time']);
 
         return response()->json(
-            $block->toArray() + ['conflicting_bookings' => $conflicts],
+            $block->toArray() + [
+                'conflicting_bookings' => $conflictQuery->count(),
+                'conflicts' => $conflicts,
+            ],
             201
         );
     }

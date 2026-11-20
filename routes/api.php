@@ -34,6 +34,7 @@
 // `Illuminate\Support\Facades\Route::`.
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PractitionerController;
+use App\Http\Controllers\BlockedTimeController;
 use App\Http\Controllers\BookingController;
 use Illuminate\Support\Facades\Route;
 
@@ -69,5 +70,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Daftar dokter klinik untuk dropdown filter.
         Route::get('/practitioners', [PractitionerController::class, 'index']);
+
+        // Blokir waktu dokter (cuti, rapat, dll). Waktu dikirim dan dibalas dalam UTC.
+        // POST membalas juga `conflicts`: pasien confirmed yang bentrok (maks. 50).
+        Route::get('/practitioners/{practitioner}/blocked-times', [BlockedTimeController::class, 'index']);
+        Route::post('/practitioners/{practitioner}/blocked-times', [BlockedTimeController::class, 'store']);
+        Route::delete('/blocked-times/{blockedTime}', [BlockedTimeController::class, 'destroy']);
     });
 });

@@ -185,6 +185,100 @@ class BlockedTimeTest extends TestCase
         $this->assertSame('confirmed', $inside->fresh()->status);
     }
 
+    // 4a
+    public function test_store_returns_conflicting_patients_soonest_first(): void
+    {
+        $later = $this->makeBooking($this->practitioner, '11:00');
+        $earlier = $this->makeBooking($this->practitioner, '10:30');
+
+        $response = $this->actingAs($this->owner)
+            ->postJson($this->url(), $this->payload())
+            ->assertCreated()
+            ->assertJsonPath('conflicting_bookings', 2)
+            ->assertJsonCount(2, 'conflicts');
+
+        // Urut booked_time naik, hanya 4 field yang dibutuhkan UI.
+        $this->assertSame([$earlier->id, $later->id], collect($response->json('conflicts'))->pluck('id')->all());
+        $response->assertJsonStructure(['conflicts' => [['id', 'patient_name', 'patient_phone', 'booked_time']]]);
+        $this->assertSame(
+            ['booked_time', 'id', 'patient_name', 'patient_phone'],
+            collect($response->json('conflicts.0'))->keys()->sort()->values()->all()
+        );
+        $response->assertJsonPath('conflicts.0.patient_phone', '628111111111');
+    }
+
+    // 4b
+    public function test_conflicts_only_include_confirmed_bookings_inside_the_block(): void
+    {
+        $confirmed = $this->makeBooking($this->practitioner, '10:30');
+        $this->makeBooking($this->practitioner, '11:00', 'cancelled');
+        $this->makeBooking($this->practitioner, '11:30', 'completed');
+        $this->makeBooking($this->practitioner, '14:00'); // di luar blok
+        $this->makeBooking($this->otherPractitioner, '10:30'); // dokter lain
+
+        $response = $this->actingAs($this->owner)
+            ->postJson($this->url(), $this->payload())
+            ->assertCreated()
+            ->assertJsonPath('conflicting_bookings', 1)
+            ->assertJsonCount(1, 'conflicts');
+
+        $this->assertSame($confirmed->id, $response->json('conflicts.0.id'));
+    }
+
+    // 4c
+    public function test_block_range_includes_start_but_excludes_end(): void
+    {
+        $atStart = $this->makeBooking($this->practitioner, '10:00');
+        $this->makeBooking($this->practitioner, '12:00'); // tepat di akhir: di luar [start, end)
+
+        $response = $this->actingAs($this->owner)
+            ->postJson($this->url(), $this->payload())
+            ->assertCreated()
+            ->assertJsonPath('conflicting_bookings', 1);
+
+        $this->assertSame([$atStart->id], collect($response->json('conflicts'))->pluck('id')->all());
+    }
+
+    // 4d
+    public function test_no_conflicts_returns_empty_list(): void
+    {
+        $this->actingAs($this->owner)
+            ->postJson($this->url(), $this->payload())
+            ->assertCreated()
+            ->assertJsonPath('conflicting_bookings', 0)
+            ->assertJsonPath('conflicts', []);
+    }
+
+    // 4e
+    public function test_conflicts_list_is_capped_at_50_but_count_is_full(): void
+    {
+        // unique(practitioner_id, booked_time): tiap booking butuh menit berbeda.
+        $first = Carbon::parse($this->mondayUtc('00:00'));
+        foreach (range(0, 50) as $i) {
+            Booking::create([
+                'practitioner_id' => $this->practitioner->id,
+                'patient_name' => "Pasien $i",
+                'patient_phone' => '628111111111',
+                'visit_reason' => 'Checkup',
+                'booked_time' => $first->copy()->addMinutes($i),
+                'status' => 'confirmed',
+            ]);
+        }
+
+        $response = $this->actingAs($this->owner)
+            ->postJson($this->url(), $this->payload([
+                'start_time' => $this->mondayUtc('00:00'),
+                'end_time' => $this->mondayUtc('23:00'),
+            ]))
+            ->assertCreated()
+            ->assertJsonPath('conflicting_bookings', 51)
+            ->assertJsonCount(50, 'conflicts');
+
+        // 50 pertama menurut waktu, bukan 50 acak.
+        $this->assertSame('Pasien 0', $response->json('conflicts.0.patient_name'));
+        $this->assertSame('Pasien 49', $response->json('conflicts.49.patient_name'));
+    }
+
     // 5
     public function test_index_lists_only_that_practitioners_blocks_soonest_first(): void
     {
