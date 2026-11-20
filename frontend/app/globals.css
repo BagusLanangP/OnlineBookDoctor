@@ -1091,7 +1091,9 @@ a {
    Gerak hanya umpan balik tekan; ganti tanggal/filter tidak dianimasikan
    karena dipakai puluhan kali sehari.
    ------------------------------------------------------------------ */
-.bk {
+/* Variabel dipakai bersama oleh .bk (Shell) dan .bk-app (layout + sidebar). */
+.bk,
+.bk-app {
   --frame: var(--paper);
   --sheet: #ffffff;
   --edge: #e4e2dc;
@@ -1100,64 +1102,240 @@ a {
   --text: var(--ink);
   --pos-bg: #dcfae5;
   --pos-ink: #0f5130;
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  padding: 0 8px 8px;
   background: var(--frame);
   color: var(--text);
   font-size: 14px;
   line-height: 20px;
 }
+/* Shell staf, gaya "framed sheet": sidebar dan top bar berbagi satu bingkai batu
+   (bentuk L, tanpa garis di antaranya); halaman berada di lembar putih.
+   - Desktop (>= 1024px): sidebar 228px menempel dan tampil. Tombol garis tiga
+     menyembunyikannya (data-side="closed"); lembar putih melebar mengisi ruang.
+   - Tablet & ponsel: sidebar menjadi laci di atas halaman, dibuka tombol yang sama.
+   Gerak hanya pada buka/tutup (umpan balik), dan dimatikan bila pengguna memilih
+   gerak dikurangi. */
+.bk-app {
+  --side: 228px;
+  --side-speed: 260ms;
+  position: relative;
+  display: flex;
+  min-height: 100svh;
+}
+.bk-app__main {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  min-height: 100svh;
+}
+.bk {
+  flex: 1;
+  min-width: 0;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: 0 8px 8px;
+}
 
-/* Top bar: 48px di atas bingkai, tanpa garis pemisah. */
+/* Top bar Shell: 48px di atas bingkai, tanpa garis. 56px kiri = tempat tombol garis tiga. */
 .bk__top {
   display: flex;
   align-items: center;
   gap: 12px;
   height: 48px;
-  padding: 0 12px;
-}
-.bk__brand {
-  display: flex;
-  line-height: 0;
-}
-.bk__brand rect:first-child {
-  rx: 7px;
+  padding: 0 12px 0 56px;
 }
 .bk__scope {
   font-weight: 600;
-}
-.bk__nav {
-  display: flex;
-  gap: 4px;
-  margin-left: 12px;
-}
-.bk__navlink {
-  padding: 6px 10px;
-  border-radius: 8px;
-  color: var(--muted);
-  text-decoration: none;
-  transition: background-color 120ms var(--ease), color 120ms var(--ease);
-}
-.bk__navlink[aria-current="page"] {
-  background: #e4e2dc;
-  color: var(--text);
-  font-weight: 500;
-}
-@media (hover: hover) and (pointer: fine) {
-  .bk__navlink:hover {
-    color: var(--text);
-  }
 }
 .bk__user {
   margin-left: auto;
   color: var(--muted);
 }
 
+/* Tombol garis tiga: kiri atas, sejajar top bar, selalu di atas laci. */
+.bk__menubtn {
+  position: absolute;
+  top: 6px;
+  left: 12px;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: var(--muted);
+  transition: background-color 120ms var(--ease), color 120ms var(--ease), scale 160ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .bk__menubtn:hover {
+    background: rgb(38 37 30 / 0.07);
+    color: var(--text);
+  }
+}
+.bk__menubtn:active {
+  scale: 0.94;
+}
+.bk__menubtn[aria-expanded="true"] {
+  color: var(--text);
+}
+
+/* Logo dan nama produk. */
+.bk__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+.bk__brand svg {
+  flex: none;
+}
+.bk__brand rect:first-child {
+  rx: 6px;
+}
+
+/* Sidebar, bentuk dasar = laci (tablet & ponsel). Tertutup: digeser keluar layar,
+   lalu disembunyikan (visibility) setelah gerakan selesai supaya tak bisa difokus.
+   Laci mengambang di atas halaman, jadi boleh berbayang. */
+.bk__side {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
+  width: min(288px, 86vw);
+  background: var(--frame);
+  /* Laci mengambang di atas halaman: satu-satunya bayangan di shell. */
+  box-shadow: 0 16px 48px rgb(38 37 30 / 0.18); /* taste-skill-ignore: laci mengambang (overlay) */
+  visibility: hidden;
+  transform: translateX(-100%);
+  transition: transform var(--side-speed) var(--ease-out), visibility 0s linear var(--side-speed);
+}
+.bk__side.is-open {
+  visibility: visible;
+  transform: none;
+  transition: transform var(--side-speed) var(--ease-out), visibility 0s;
+}
+.bk__side-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0 8px 12px;
+}
+/* Baris logo setinggi top bar; 48px kiri menyisakan tempat tombol garis tiga. */
+.bk__side-head {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding-left: 44px;
+}
+.bk__sidenav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 12px;
+}
+/* Baris menu: ikon 16px + label 14px. Aktif = pil abu netral, label tinta.
+   Layar sentuh: 44px; desktop: 34px (lihat @media di bawah). */
+.bk__navlink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: background-color 120ms var(--ease), color 120ms var(--ease);
+}
+.bk__navlink svg {
+  flex: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .bk__navlink:hover {
+    background: rgb(38 37 30 / 0.05);
+    color: var(--text);
+  }
+}
+.bk__navlink[aria-current="page"] {
+  background: rgb(38 37 30 / 0.08);
+  color: var(--text);
+  font-weight: 500;
+}
+/* Utilitas (Akun) didorong ke bawah sidebar. */
+.bk__navlink--foot {
+  margin-top: auto;
+}
+/* Tirai di belakang laci. */
+.bk__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  background: rgb(38 37 30 / 0.28);
+}
+
+/* Desktop: sidebar menempel di bingkai (bukan laci), tampil secara bawaan. */
+@media (min-width: 1024px) {
+  .bk__side {
+    position: sticky;
+    top: 0;
+    flex: none;
+    align-self: flex-start;
+    width: var(--side);
+    height: 100svh;
+    overflow: hidden;
+    background: transparent;
+    box-shadow: none; /* taste-skill-ignore: mematikan bayangan laci di desktop */
+    visibility: visible;
+    transform: none;
+    transition: width var(--side-speed) var(--ease-out), visibility 0s;
+  }
+  .bk__side-inner {
+    width: var(--side);
+  }
+  .bk__navlink {
+    min-height: 34px;
+  }
+  /* Disembunyikan: lebar menyusut ke 0, lalu tak terlihat setelah gerakan selesai. */
+  .bk-app[data-side="closed"] .bk__side {
+    width: 0;
+    visibility: hidden;
+    transition: width var(--side-speed) var(--ease-out), visibility 0s linear var(--side-speed);
+  }
+  /* Sidebar tampil: lembar putih menempel ke sidebar, top bar tak perlu ruang tombol. */
+  .bk,
+  .bk__top {
+    transition: padding-left var(--side-speed) var(--ease-out);
+  }
+  .bk-app[data-side="open"] .bk {
+    padding-left: 0;
+  }
+  .bk-app[data-side="open"] .bk__top {
+    padding-left: 12px;
+  }
+  .bk__scrim {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bk__side,
+  .bk__side.is-open,
+  .bk-app[data-side="closed"] .bk__side,
+  .bk,
+  .bk__top {
+    transition: none;
+  }
+}
+
 /* Lembar putih. */
 .bk__sheet {
   flex: 1;
+  min-width: 0;
   padding: 24px;
   border: 1px solid var(--edge);
   border-radius: 16px;
@@ -1518,10 +1696,10 @@ input[type="date"].bk__ctl {
     padding: 0;
   }
   .bk__top {
-    padding: 0 16px;
+    padding: 0 16px 0 52px;
   }
-  .bk__nav {
-    display: none;
+  .bk__menubtn {
+    left: 8px;
   }
   .bk__sheet {
     padding: 20px 16px;
@@ -1627,21 +1805,52 @@ input[type="date"].bk__ctl {
   }
 }
 
-/* Form: kolom otomatis, tiap kolom minimal 160px, alasan selebar baris. */
-.bk__form .bk__h2 {
+/* Susunan halaman Blokir waktu: form "Blokir baru" dan daftar blokir mendatang.
+   Layar lebar (>= 1180px): berdampingan, form di panel 340px kiri, daftar mengisi
+   sisanya. Lebih sempit: bertumpuk, form paling lebar 560px. */
+.bk__blockgrid {
+  display: grid;
+  gap: 32px;
   margin-top: 24px;
 }
+.bk__blockgrid .bk__h2 {
+  margin-top: 0;
+}
+@media (min-width: 1180px) {
+  .bk__blockgrid {
+    grid-template-columns: 340px minmax(0, 1fr);
+    align-items: start;
+    gap: 40px;
+  }
+  /* Judul daftar sejajar dengan judul di dalam panel form (padding panel 20px). */
+  .bk__blocks {
+    padding-top: 20px;
+  }
+}
+@media (min-width: 641px) and (max-width: 1179px) {
+  .bk__blockform {
+    max-width: 560px;
+  }
+}
+/* Panel form: satu langkah warna dari lembar putih, tanpa garis dan bayangan;
+   kolom isian tetap putih di atasnya. */
+.bk__form {
+  padding: 20px;
+  border-radius: 12px;
+  background: #f3f3f1; /* batu netral, satu langkah dari putih (bukan krem) */
+}
+/* Susunan tetap: tanggal | tanggal, Seharian, jam | jam, alasan. */
 .bk__fields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  align-items: end;
-  gap: 12px 16px;
-  margin-top: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 12px;
+  margin-top: 16px;
 }
 .bk__field {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 .bk__field > span {
   color: var(--muted);
@@ -1651,16 +1860,17 @@ input[type="date"].bk__ctl {
 .bk__field .bk__ctl {
   justify-content: flex-start;
   width: 100%;
+  min-width: 0;
   font-variant-numeric: tabular-nums;
 }
-.bk__field--wide {
+.bk__field--wide,
+.bk__check {
   grid-column: 1 / -1;
 }
 .bk__check {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 36px;
   font-weight: 500;
 }
 .bk__check input {
@@ -1669,7 +1879,12 @@ input[type="date"].bk__ctl {
   accent-color: var(--accent);
 }
 .bk__submit {
-  margin-top: 16px;
+  margin-top: 20px;
+}
+@media (max-width: 640px) {
+  .bk__form {
+    padding: 16px;
+  }
 }
 
 /* Panel hasil simpan: garis aksen di kiri, daftar pasien bentrok di dalamnya. */

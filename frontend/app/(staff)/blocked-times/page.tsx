@@ -131,7 +131,7 @@ export default function BlockedTimesPage() {
 
   if (state.kind !== "ready") {
     return (
-      <Shell active="blocked">
+      <Shell>
         <h1 className="bk__h1">Blokir waktu</h1>
         {state.kind === "error" ? (
           <p role="alert" className="bk__error">
@@ -149,7 +149,7 @@ export default function BlockedTimesPage() {
   // Klinik tanpa dokter: tidak ada yang bisa diblokir.
   if (state.practitioners.length === 0) {
     return (
-      <Shell active="blocked" clinicName={state.clinic.name} userName={state.me.user.name}>
+      <Shell clinicName={state.clinic.name} userName={state.me.user.name}>
         <h1 className="bk__h1">Blokir waktu</h1>
         <p className="bk__empty">Klinik ini belum punya dokter, jadi belum ada jadwal yang bisa diblokir.</p>
       </Shell>
@@ -157,7 +157,7 @@ export default function BlockedTimesPage() {
   }
 
   return (
-    <Shell active="blocked" clinicName={state.clinic.name} userName={state.me.user.name}>
+    <Shell clinicName={state.clinic.name} userName={state.me.user.name}>
       <BlockedTimesView clinic={state.clinic} practitioners={state.practitioners} />
     </Shell>
   );
@@ -371,11 +371,18 @@ function BlockedTimesView({
         </select>
       </div>
 
+      {/* Dua bagian: form "Blokir baru" (panel sempit) dan daftar blokir mendatang.
+          Layar lebar: berdampingan (form kiri, daftar kanan); layar kecil: bertumpuk.
+          Urutan di kode = urutan baca = urutan tampil. */}
+      <div className="bk__blockgrid">
+      <section className="bk__blockform" aria-labelledby="block-new">
       {/* Form. noValidate: pesan kesalahan kita sendiri (buildBlockRange) yang
           dipakai, bukan gelembung bawaan browser. Setiap kolom punya <label>
           yang terlihat. Kolom jam hilang saat "Seharian" dicentang. */}
       <form className="bk__form" onSubmit={submit} noValidate>
-        <h2 className="bk__h2">Buat blokir untuk {doctorName}</h2>
+        <h2 id="block-new" className="bk__h2">
+          Blokir baru
+        </h2>
         <div className="bk__fields">
           <label className="bk__field">
             <span>Tanggal mulai</span>
@@ -503,8 +510,12 @@ function BlockedTimesView({
           </section>
         )}
       </div>
+      </section>
 
-      <h2 className="bk__h2">Blokir mendatang · {doctorName}</h2>
+      <section className="bk__blocks" aria-labelledby="block-list">
+      <h2 id="block-list" className="bk__h2">
+        Blokir mendatang · {doctorName}
+      </h2>
 
       <p role="alert" className="bk__alert" hidden={!actionError}>
         {actionError}
@@ -609,6 +620,8 @@ function BlockedTimesView({
           )}
         </>
       )}
+      </section>
+      </div>
     </>
   );
 }

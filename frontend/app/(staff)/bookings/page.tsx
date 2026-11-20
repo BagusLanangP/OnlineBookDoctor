@@ -19,7 +19,7 @@
 //
 // Istilah React yang dipakai di file ini:
 //  - Komponen  : fungsi yang mengembalikan tampilan (JSX). Contoh: Shell (components/Shell.tsx), BookingsView.
-//  - Props     : masukan komponen, ditulis seperti atribut HTML: <Shell active="bookings" clinicName="...">.
+//  - Props     : masukan komponen, ditulis seperti atribut HTML: <Shell clinicName="...">.
 //  - useState  : "ingatan" komponen. Saat nilainya diubah lewat setter (setFilters dll.),
 //                React menggambar ulang komponen dengan nilai baru.
 //  - useEffect : kode yang dijalankan SETELAH tampilan digambar, misalnya mengambil data.
@@ -213,7 +213,7 @@ export default function BookingsPage() {
   // `<>...</>` (Fragment) membungkus beberapa elemen tanpa menambah tag HTML.
   if (state.kind !== "ready") {
     return (
-      <Shell active="bookings">
+      <Shell>
         <h1 className="bk__h1">Booking</h1>
         {state.kind === "error" ? (
           <p role="alert" className="bk__error">
@@ -237,7 +237,7 @@ export default function BookingsPage() {
   // BookingsView. Dengan dipisah begini, BookingsView tidak perlu memikirkan
   // keadaan "belum ada klinik" sama sekali.
   return (
-    <Shell active="bookings" clinicName={state.clinic.name} userName={state.me.user.name}>
+    <Shell clinicName={state.clinic.name} userName={state.me.user.name}>
       <BookingsView clinic={state.clinic} practitioners={state.practitioners} />
     </Shell>
   );
