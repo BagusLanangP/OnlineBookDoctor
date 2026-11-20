@@ -2,7 +2,7 @@
 
 Homepage untuk Praktika, aplikasi jadwal praktek dan booking klinik. Dibuat dengan
 Next.js 16 (App Router), React 19, TypeScript, dan Tailwind 4. Folder ini berdiri
-sendiri; login dan dashboard masih berjalan di aplikasi Laravel di folder induk.
+sendiri dan mengambil data dari API Laravel di folder induk.
 
 ## Menjalankan
 
@@ -19,8 +19,10 @@ Untuk memeriksa hasil build produksi:
 npm run build && npm run start
 ```
 
-Tombol "Masuk" mengarah ke `NEXT_PUBLIC_APP_URL` + `/login`
+Tombol "Masuk" mengarah ke halaman `/login` milik Next.js. Login, data akun, dan
+booking diambil dari API Laravel di `NEXT_PUBLIC_API_URL`
 (bawaan: `http://localhost:8088`, yaitu aplikasi Laravel di Docker).
+Setelah masuk, pengguna diarahkan ke `/bookings`.
 
 ## Struktur
 
@@ -34,7 +36,12 @@ Tombol "Masuk" mengarah ke `NEXT_PUBLIC_APP_URL` + `/login`
 | `components/ui.tsx` | Potongan antarmuka Dashboard dan editor jadwal (contoh) |
 | `components/Showcase.tsx` | Dashboard dengan tiga tab di atas foto |
 | `components/Photo.tsx` | Foto dengan perlakuan duotone seragam |
-| `lib/config.ts` | Alamat aplikasi Laravel |
+| `lib/config.ts` | Alamat halaman login (`/login`) |
+| `app/login/page.tsx`, `app/akun/page.tsx` | Login dan halaman akun (keluar) |
+| `app/bookings/page.tsx` | Daftar booking per hari, filter dokter dan status, tombol Selesai/Batal |
+| `lib/api.ts` | Pengirim permintaan ke API Laravel (cookie sesi, token CSRF) |
+| `lib/booking.ts`, `lib/booking-api.ts` | Tipe dan fungsi bantu booking, serta pemanggil API booking |
+| `lib/booking.test.ts` | Tes fungsi bantu booking (`npm test`) |
 
 ## Yang perlu diketahui
 

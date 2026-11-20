@@ -1,7 +1,4 @@
-// Alamat aplikasi Laravel. Login dan dashboard masih berjalan di sana,
-// jadi semua tombol "Masuk" di homepage ini menuju ke alamat tersebut.
-export const APP_URL = (
-  process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:8088"
-).replace(/\/$/, "");
-
-export const LOGIN_URL = `${APP_URL}/login`;
+// Halaman login sekarang ada di Next.js sendiri (app/login/page.tsx), jadi semua
+// tombol "Masuk" di homepage cukup menuju alamat lokal ini. Setelah berhasil
+// masuk, pengguna diarahkan ke /bookings.
+export const LOGIN_URL = "/login";
