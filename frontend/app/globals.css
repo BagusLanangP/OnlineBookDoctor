@@ -1601,3 +1601,147 @@ input[type="date"].bk__ctl {
     margin-top: 8px;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Halaman Blokir waktu (Task 10). Memakai ulang kontrol bk__ctl / bk__textbtn /
+   bk__alert / bk__error / bk__empty / bk__pager dari halaman booking. Daftar
+   memakai <ul> sendiri (bukan .bk__table, yang aturan ponselnya khusus booking).
+   --------------------------------------------------------------------------- */
+.bk__h2 {
+  margin-top: 28px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+.bk__muted {
+  color: var(--muted);
+}
+.bk__textlink {
+  color: var(--accent-deep);
+  font-weight: 500;
+  text-decoration: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .bk__textlink:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Form: kolom otomatis, tiap kolom minimal 160px, alasan selebar baris. */
+.bk__form .bk__h2 {
+  margin-top: 24px;
+}
+.bk__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  align-items: end;
+  gap: 12px 16px;
+  margin-top: 12px;
+}
+.bk__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bk__field > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+.bk__field .bk__ctl {
+  justify-content: flex-start;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+.bk__field--wide {
+  grid-column: 1 / -1;
+}
+.bk__check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  font-weight: 500;
+}
+.bk__check input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+.bk__submit {
+  margin-top: 16px;
+}
+
+/* Panel hasil simpan: garis aksen di kiri, daftar pasien bentrok di dalamnya. */
+.bk__conflict {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--control);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+}
+.bk__conflict p + p,
+.bk__conflict ul + p {
+  margin-top: 8px;
+}
+.bk__conflict ul {
+  margin-top: 8px;
+  list-style: none;
+}
+.bk__conflict li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--rule);
+}
+.bk__conflict a.bk__ctl {
+  text-decoration: none;
+}
+
+/* Daftar blokir: tiga kolom (waktu | alasan | aksi); di ponsel alasan pindah ke baris bawah. */
+.bk__blocklist {
+  margin-top: 8px;
+  list-style: none;
+  transition: opacity 160ms var(--ease);
+}
+.bk__blocklist.is-busy {
+  opacity: 0.55;
+}
+.bk__block {
+  display: grid;
+  grid-template-columns: minmax(150px, 230px) 1fr auto;
+  align-items: center;
+  gap: 4px 16px;
+  padding: 12px 4px;
+  border-top: 1px solid var(--rule);
+}
+.bk__block-when {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.bk__block-reason {
+  color: var(--muted);
+}
+.bk__block-act {
+  text-align: right;
+}
+.bk__block-act:empty {
+  display: none;
+}
+@media (max-width: 640px) {
+  .bk__block {
+    grid-template-columns: 1fr auto;
+  }
+  .bk__block-reason {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .bk__block .bk__actions {
+    flex-wrap: wrap;
+  }
+  .bk__conflict li {
+    flex-wrap: wrap;
+  }
+}
