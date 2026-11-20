@@ -18,7 +18,7 @@
 // lewat lib/booking-api.ts -> lib/api.ts. Gaya ada di globals.css (kelas bk__*).
 //
 // Istilah React yang dipakai di file ini:
-//  - Komponen  : fungsi yang mengembalikan tampilan (JSX). Contoh: Shell, BookingsView.
+//  - Komponen  : fungsi yang mengembalikan tampilan (JSX). Contoh: Shell (components/Shell.tsx), BookingsView.
 //  - Props     : masukan komponen, ditulis seperti atribut HTML: <Shell clinicName="...">.
 //  - useState  : "ingatan" komponen. Saat nilainya diubah lewat setter (setFilters dll.),
 //                React menggambar ulang komponen dengan nilai baru.
@@ -27,11 +27,11 @@
 //  - useRef    : kotak nilai yang tidak memicu gambar ulang dan langsung berubah
 //                (tidak menunggu render berikutnya).
 //  - useRouter : alat pindah halaman dari kode, contoh router.replace("/login").
-import Link from "next/link"; // <Link> = tautan antarhalaman Next.js tanpa muat ulang penuh
 import { useRouter } from "next/navigation";
-import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
-import { LogoMark } from "@/components/Logo";
+import { Fragment, useEffect, useRef, useState } from "react";
+import { Shell } from "@/components/Shell";
 import { ApiError, api } from "@/lib/api";
+import type { Clinic, Me } from "@/lib/me";
 import {
   STATUS_LABEL,
   formatDate,
@@ -49,14 +49,6 @@ import {
   fetchPractitioners,
   markCompleted,
 } from "@/lib/booking-api";
-
-// Bentuk balasan GET /api/user (lihat AuthController::me di Laravel).
-// `clinic` bisa null bila akun belum terhubung ke klinik.
-type Clinic = { id: number; name: string; timezone: string };
-type Me = {
-  user: { id: number; name: string; email: string };
-  clinic: Clinic | null;
-};
 
 const PER_PAGE = 20; // sama dengan paginate(20) di Laravel
 const STATUS_OPTIONS: BookingStatus[] = ["confirmed", "completed", "cancelled"];
@@ -98,44 +90,6 @@ function Chevron({ dir }: { dir: "left" | "right" }) {
         strokeLinejoin="round"
       />
     </svg>
-  );
-}
-
-// Bingkai aplikasi: top bar di atas bingkai batu, isi di satu lembar putih.
-// `children` adalah apa pun yang ditulis di antara <Shell> dan </Shell>;
-// Shell membungkusnya tanpa perlu tahu isinya. Tanda `?` pada clinicName dan
-// userName berarti boleh tidak diisi (saat halaman masih memuat).
-// aria-current="page" memberi tahu pembaca layar bahwa tautan ini halaman saat ini.
-function Shell({
-  clinicName,
-  userName,
-  children,
-}: {
-  clinicName?: string;
-  userName?: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="bk">
-      <header className="bk__top">
-        <Link href="/" aria-label="Praktika, ke beranda" className="bk__brand">
-          <LogoMark size={26} />
-        </Link>
-        <span className="bk__scope">{clinicName ?? "Praktika"}</span>
-        <nav className="bk__nav" aria-label="Utama">
-          <Link href="/bookings" aria-current="page" className="bk__navlink">
-            Booking
-          </Link>
-          <Link href="/akun" className="bk__navlink">
-            Akun
-          </Link>
-        </nav>
-        {userName && <span className="bk__user">{userName}</span>}
-      </header>
-      <main className="bk__sheet">
-        <div className="bk__inner">{children}</div>
-      </main>
-    </div>
   );
 }
 
