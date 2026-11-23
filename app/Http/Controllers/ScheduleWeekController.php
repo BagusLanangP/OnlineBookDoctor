@@ -4,10 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\SyncSchedulesRequest;
 use App\Models\Practitioner;
-use Carbon\Carbon;
+use App\Services\ScheduleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -98,39 +97,11 @@ class ScheduleWeekController extends Controller
      *  1. HAPUS jadwal hari-hari yang tidak ada di kiriman (artinya hari itu dimatikan/libur).
      *  2. Untuk tiap hari yang dikirim: UPDATE jika sudah ada, atau BUAT baru jika belum.
      */
-    public function update(SyncSchedulesRequest $request, Practitioner $practitioner): RedirectResponse
+    public function update(SyncSchedulesRequest $request, Practitioner $practitioner, ScheduleService $schedules): RedirectResponse
     {
-        // Hanya data yang lolos validasi (bukan input mentah)
-        $days = $request->validated('schedules');
-
-        // Transaksi: kalau di tengah jalan error, penghapusan di langkah 1 ikut dibatalkan,
-        // jadi jadwal tidak pernah tersisa setengah-berubah.
-        DB::transaction(function () use ($practitioner, $days) {
-            // Decision #1: days not sent are switched off. (whereNotIn on an
-            // empty list matches every row, which is what "all off" means.)
-            // Langkah 1: hapus hari yang tidak dikirim.
-            // Contoh: DB punya Sen, Rab, Jum; form kirim Sen & Rab -> Jum dihapus.
-            // Form kirim [] -> semua hari dihapus (practitioner libur seminggu).
-            $practitioner->schedules()
-                ->whereNotIn('day_of_week', collect($days)->pluck('day_of_week'))
-                ->delete();
-
-            // Langkah 2: simpan tiap hari yang dikirim
-            foreach ($days as $day) {
-                // updateOrCreate(cari_dengan, isi_dengan):
-                // cari jadwal practitioner ini di hari tsb -> ada: ubah jamnya, tidak ada: buat baru.
-                // Efeknya tidak pernah ada 2 baris untuk hari yang sama.
-                $practitioner->schedules()->updateOrCreate(
-                    ['day_of_week' => $day['day_of_week']],
-                    [
-                        // Decision #5: one stored format.
-                        // Form boleh kirim "09:00" atau "09:00:00"; di DB selalu disimpan "09:00:00"
-                        'start_time' => Carbon::parse($day['start_time'])->format('H:i:s'),
-                        'end_time' => Carbon::parse($day['end_time'])->format('H:i:s'),
-                    ],
-                );
-            }
-        });
+        // Logika simpan dipindah ke ScheduleService (Task 12) supaya dipakai bersama
+        // dengan API Next.js. Perilakunya sama persis (dijaga ScheduleWeekTest).
+        $schedules->syncWeek($practitioner, $request->validated('schedules'));
 
         // Kembali ke halaman sebelumnya (form jadwal); Inertia akan menampilkan data terbaru
         return back();
