@@ -45,6 +45,16 @@ const NAV: { href: string; label: string; icon: ReactNode; foot?: boolean }[] = 
     ),
   },
   {
+    href: "/schedules",
+    label: "Jadwal",
+    icon: (
+      <Icon>
+        <circle cx="8" cy="8" r="5.75" />
+        <path d="M8 4.75V8l2.25 1.5" />
+      </Icon>
+    ),
+  },
+  {
     href: "/blocked-times",
     label: "Blokir waktu",
     icon: (
