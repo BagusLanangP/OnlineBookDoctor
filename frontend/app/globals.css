@@ -1960,3 +1960,253 @@ input[type="date"].bk__ctl {
     flex-wrap: wrap;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Halaman Akun (Task 11): profil klinik, pratinjau pasien, dokter, akun.
+   Layar lebar (>= 1180px): kolom kiri (profil, dokter, akun) + pratinjau 360px
+   di kanan yang menempel saat digulir. Lebih sempit: satu kolom, pratinjau
+   tepat di bawah form profil (urutan DOM).
+   --------------------------------------------------------------------------- */
+.bk__acctgrid {
+  display: grid;
+  gap: 32px;
+  margin-top: 24px;
+}
+.bk__acctgrid .bk__form .bk__h2,
+.bk__preview .bk__h2 {
+  margin-top: 0;
+}
+.bk__acct-doctors .bk__h2,
+.bk__acct-account .bk__h2,
+.bk__acct-solo .bk__h2 {
+  margin-top: 0;
+}
+.bk__acct-solo {
+  margin-top: 24px;
+  max-width: 560px;
+}
+@media (min-width: 1180px) {
+  .bk__acctgrid {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    align-items: start;
+    gap: 40px;
+  }
+  .bk__acct-profile,
+  .bk__acct-doctors,
+  .bk__acct-account {
+    grid-column: 1;
+  }
+  .bk__preview {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    position: sticky;
+    top: 24px;
+  }
+}
+@media (min-width: 641px) and (max-width: 1179px) {
+  .bk__acctgrid {
+    max-width: 720px;
+  }
+}
+
+/* Label kolom bila kolomnya bukan <label> pembungkus (form Akun). */
+.bk__field > label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+.bk__ctl--area {
+  display: block;
+  min-height: 76px;
+  padding: 8px 12px;
+  line-height: 20px;
+  resize: vertical;
+}
+.bk__ctl[aria-invalid="true"] {
+  border-color: #c4242a;
+}
+.bk__note {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+.bk__note--error {
+  color: #a31d22;
+  font-weight: 500;
+}
+.bk__note--warn {
+  color: var(--text);
+}
+.bk__formfoot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+.bk__bar--ctl {
+  height: 36px;
+  border-radius: 8px;
+  background: #fff;
+}
+
+/* Pratinjau: kartu putih bergaris, seperti yang nanti dilihat pasien. */
+.bk__preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.bk__stamp {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+.bk__preview-card {
+  margin-top: 12px;
+  padding: 20px;
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+.bk__preview-name {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+.bk__preview-desc {
+  margin-top: 4px;
+  color: var(--muted);
+}
+.bk__preview-line {
+  margin-top: 12px;
+}
+.bk__preview-contact {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.bk__preview-contact div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.bk__preview-contact dt {
+  color: var(--muted);
+}
+.bk__preview-contact dd {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.bk__preview-count {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.bk__preview-docs {
+  margin-top: 8px;
+  list-style: none;
+}
+.bk__preview-docs li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+/* Daftar dokter: nama | spesialisasi | aksi; baris ubah berisi form kecil. */
+.bk__doclist {
+  margin-top: 8px;
+  list-style: none;
+}
+.bk__doc {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 16px;
+  padding: 12px 4px;
+  border-top: 1px solid var(--rule);
+}
+.bk__doc--edit {
+  display: block;
+}
+.bk__doc-name {
+  font-weight: 600;
+}
+.bk__doc-spec {
+  color: var(--muted);
+}
+.bk__doc-act {
+  text-align: right;
+}
+.bk__doc-msg {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+}
+.bk__docform {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+}
+.bk__docform .bk__field .bk__ctl {
+  width: 100%;
+}
+.bk__docform-act {
+  padding-top: 22px; /* sejajar dengan kolom (tinggi label 16px + jarak 6px) */
+}
+.bk__docform--new {
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f3f3f1;
+}
+
+.bk__acctrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 8px;
+  padding: 12px 4px;
+  border-top: 1px solid var(--rule);
+}
+
+@media (max-width: 640px) {
+  .bk__doc {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .bk__doc-spec {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .bk__doc-act {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+  }
+  .bk__doc .bk__actions--ask {
+    flex-wrap: wrap;
+  }
+  .bk__docform {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bk__docform-act {
+    padding-top: 0;
+  }
+  .bk__acct-profile .bk__fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bk__preview-card {
+    padding: 16px;
+  }
+}
+
+/* Tombol gelap yang nonaktif (mis. "Simpan profil" tanpa perubahan): abu terang
+   dengan teks abu yang tetap terbaca, bukan tinta pudar. */
+.bk__ctl--dark:disabled {
+  border-color: #e9e8e4;
+  background: #e9e8e4;
+  color: var(--muted);
+  opacity: 1;
+}

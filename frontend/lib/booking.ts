@@ -17,7 +17,7 @@ export type Booking = {
     practitioner: { id: number; name: string };
 };
 
-export type Practitioner = { id: number; name: string; specialty: string };
+export type Practitioner = { id: number; name: string; specialty: string | null };
 
 // Bentuk paginator Laravel; hanya field yang dipakai halaman.
 export type Paginated<T> = {
