@@ -2210,3 +2210,164 @@ input[type="date"].bk__ctl {
   color: var(--muted);
   opacity: 1;
 }
+
+/* ---------------------------------------------------------------------------
+   Halaman Jadwal praktek (Task 12): panel 7 hari + panel hasil simpan.
+   >= 1180px: panel jadwal (maks 760px) kiri, panel pasien terdampak kanan.
+   Lebih sempit: bertumpuk.
+   --------------------------------------------------------------------------- */
+.bk__switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px 12px;
+}
+.bk__schedgrid {
+  display: grid;
+  gap: 24px;
+  margin-top: 24px;
+}
+@media (min-width: 1180px) {
+  .bk__schedgrid {
+    grid-template-columns: minmax(0, 760px) minmax(0, 1fr);
+    align-items: start;
+    gap: 40px;
+  }
+  .bk__schedside .bk__conflict {
+    margin-top: 0;
+  }
+}
+@media (min-width: 641px) and (max-width: 1179px) {
+  .bk__schedgrid {
+    max-width: 760px;
+  }
+}
+.bk__formhead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+.bk__formhead .bk__h2 {
+  margin-top: 0;
+}
+.bk__nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Baris hari: nama + centang | jam | slot | bar 00-24. */
+.bk__days {
+  margin-top: 12px;
+  list-style: none;
+}
+.bk__day {
+  display: grid;
+  /* Kolom tetap: setiap baris adalah grid sendiri, jadi lebar harus sama di semua baris
+     supaya bar 00-24 sejajar (kolom jam = 2 x 112px + tanda hubung). */
+  grid-template-columns: 112px 248px 64px minmax(80px, 1fr);
+  align-items: center;
+  gap: 4px 16px;
+  min-height: 52px;
+  padding: 8px 0;
+  border-top: 1px solid var(--edge);
+}
+.bk__day:first-child {
+  border-top: 0;
+}
+.bk__day .bk__check {
+  grid-column: auto;
+}
+.bk__day.is-off .bk__day-name span {
+  color: var(--muted);
+}
+.bk__day-times {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bk__day-times .bk__ctl {
+  width: 112px;
+  font-variant-numeric: tabular-nums;
+}
+.bk__day-slots {
+  color: var(--muted);
+  text-align: right;
+}
+.bk__track {
+  position: relative;
+  height: 8px;
+  border-radius: 4px;
+  background: #e4e3de;
+  overflow: hidden;
+}
+.bk__track-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 4px;
+  background: var(--accent);
+}
+.bk__day-note {
+  grid-column: 2 / -1;
+}
+
+@media (max-width: 640px) {
+  .bk__switch {
+    justify-content: flex-start;
+    width: 100%;
+  }
+  .bk__switch select.bk__ctl {
+    width: 100%;
+  }
+  .bk__day {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 10px 0;
+  }
+  .bk__day .bk__check {
+    min-height: 44px;
+  }
+  .bk__day-times {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .bk__day.is-off .bk__day-times {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .bk__day-times .bk__ctl {
+    flex: 1;
+    width: auto;
+    min-height: 44px;
+  }
+  .bk__day-slots {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .bk__day.is-off .bk__day-slots,
+  .bk__track {
+    display: none;
+  }
+  .bk__day-note {
+    grid-column: 1 / -1;
+  }
+  .bk__formfoot {
+    flex-wrap: wrap;
+  }
+}
+
+/* Keterangan di kolom kanan sebelum ada hasil simpan. */
+.bk__schedhint {
+  padding: 16px;
+  border: 1px dashed var(--control);
+  border-radius: 12px;
+  color: var(--muted);
+}
+.bk__schedhint p + p {
+  margin-top: 8px;
+}
+.bk__schedhint b {
+  color: var(--text);
+  font-weight: 600;
+}

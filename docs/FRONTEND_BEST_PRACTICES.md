@@ -16,6 +16,7 @@ frontend/
 │  ├─ (staff)/                grup rute halaman staf; "(staff)" TIDAK muncul di URL
 │  │  ├─ layout.tsx           memasang StaffFrame sekali untuk semua halaman staf
 │  │  ├─ bookings/page.tsx    /bookings
+│  │  ├─ schedules/page.tsx   /schedules (jadwal praktek mingguan)
 │  │  ├─ blocked-times/page.tsx /blocked-times
 │  │  └─ akun/page.tsx        /akun (profil klinik, dokter, akun)
 │  └─ globals.css             SEMUA gaya; kelas halaman staf berawalan bk__
@@ -26,7 +27,7 @@ frontend/
 └─ lib/
    ├─ api.ts                  satu-satunya pintu ke Laravel (cookie, CSRF, ApiError)
    ├─ *-api.ts                pembungkus endpoint per fitur (tanpa logika)
-   ├─ booking.ts, blocked.ts, clinic.ts  tipe + fungsi MURNI (tanpa import runtime), dites
+   ├─ booking.ts, blocked.ts, clinic.ts, schedule.ts  tipe + fungsi MURNI (tanpa import runtime), dites
    ├─ *.test.ts               node:test
    └─ me.ts                   tipe Clinic / Me bersama
 ```

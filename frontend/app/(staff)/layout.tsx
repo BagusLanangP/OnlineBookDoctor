@@ -1,4 +1,4 @@
-// Layout bersama halaman staf klinik (/bookings, /blocked-times). "(staff)" adalah
+// Layout bersama halaman staf klinik (/bookings, /schedules, /blocked-times, /akun). "(staff)" adalah
 // grup rute: nama foldernya TIDAK muncul di alamat, hanya mengelompokkan halaman
 // yang berbagi layout ini.
 //

@@ -35,6 +35,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ClinicController;
 use App\Http\Controllers\Api\PractitionerController;
+use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\BlockedTimeController;
 use App\Http\Controllers\BookingController;
 use Illuminate\Support\Facades\Route;
@@ -79,6 +80,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/practitioners', [PractitionerController::class, 'store']);
         Route::put('/practitioners/{practitioner}', [PractitionerController::class, 'update']);
         Route::delete('/practitioners/{practitioner}', [PractitionerController::class, 'destroy']);
+
+        // Jadwal praktek mingguan satu dokter (Task 12). Jam = jam lokal klinik.
+        // PUT menyinkronkan seminggu (hari yang tidak dikirim = libur) dan membalas
+        // juga `outside`: pasien confirmed mendatang di luar jam baru (maks. 50).
+        Route::get('/practitioners/{practitioner}/schedules', [ScheduleController::class, 'show']);
+        Route::put('/practitioners/{practitioner}/schedules', [ScheduleController::class, 'update']);
 
         // Blokir waktu dokter (cuti, rapat, dll). Waktu dikirim dan dibalas dalam UTC.
         // POST membalas juga `conflicts`: pasien confirmed yang bentrok (maks. 50).
