@@ -12,11 +12,12 @@ Gaya halaman staf adalah **"framed sheet"** (minimalis, ala aplikasi Apple): bin
 frontend/
 ├─ app/
 │  ├─ layout.tsx              root layout (font, globals.css)
-│  ├─ page.tsx, login/, akun/ halaman publik / akun (gaya sendiri)
+│  ├─ page.tsx, login/       halaman publik (gaya sendiri)
 │  ├─ (staff)/                grup rute halaman staf; "(staff)" TIDAK muncul di URL
 │  │  ├─ layout.tsx           memasang StaffFrame sekali untuk semua halaman staf
 │  │  ├─ bookings/page.tsx    /bookings
-│  │  └─ blocked-times/page.tsx /blocked-times
+│  │  ├─ blocked-times/page.tsx /blocked-times
+│  │  └─ akun/page.tsx        /akun (profil klinik, dokter, akun)
 │  └─ globals.css             SEMUA gaya; kelas halaman staf berawalan bk__
 ├─ components/
 │  ├─ StaffFrame.tsx          tombol garis tiga + state buka/tutup sidebar
@@ -25,7 +26,7 @@ frontend/
 └─ lib/
    ├─ api.ts                  satu-satunya pintu ke Laravel (cookie, CSRF, ApiError)
    ├─ *-api.ts                pembungkus endpoint per fitur (tanpa logika)
-   ├─ booking.ts, blocked.ts  tipe + fungsi MURNI (tanpa import runtime), dites
+   ├─ booking.ts, blocked.ts, clinic.ts  tipe + fungsi MURNI (tanpa import runtime), dites
    ├─ *.test.ts               node:test
    └─ me.ts                   tipe Clinic / Me bersama
 ```
