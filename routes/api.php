@@ -33,6 +33,7 @@
 // panjang. `use` adalah alias: PHP mengartikan `Route::` sebagai
 // `Illuminate\Support\Facades\Route::`.
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ClinicController;
 use App\Http\Controllers\Api\PractitionerController;
 use App\Http\Controllers\BlockedTimeController;
 use App\Http\Controllers\BookingController;
@@ -68,8 +69,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/bookings/{booking}', [BookingController::class, 'update']);
         Route::delete('/bookings/{booking}', [BookingController::class, 'destroy']);
 
-        // Daftar dokter klinik untuk dropdown filter.
+        // Profil klinik yang dilihat pasien (Task 11). PUT mengirim semua kolom.
+        Route::get('/clinic', [ClinicController::class, 'show']);
+        Route::put('/clinic', [ClinicController::class, 'update']);
+
+        // Daftar dokter klinik untuk dropdown filter, plus kelola dokter (Task 11).
+        // DELETE ditolak 409 bila dokter sudah punya booking (riwayat pasien aman).
         Route::get('/practitioners', [PractitionerController::class, 'index']);
+        Route::post('/practitioners', [PractitionerController::class, 'store']);
+        Route::put('/practitioners/{practitioner}', [PractitionerController::class, 'update']);
+        Route::delete('/practitioners/{practitioner}', [PractitionerController::class, 'destroy']);
 
         // Blokir waktu dokter (cuti, rapat, dll). Waktu dikirim dan dibalas dalam UTC.
         // POST membalas juga `conflicts`: pasien confirmed yang bentrok (maks. 50).
