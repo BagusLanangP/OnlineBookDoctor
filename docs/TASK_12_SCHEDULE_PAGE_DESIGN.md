@@ -7,7 +7,7 @@ langsung diberi tahu bila ada **pasien yang sudah booking di luar jam baru**.
 Task 11 (kelola dokter, komponen `Field`, `Practitioner.specialty` nullable).
 **Menggantikan:** halaman Inertia `Schedules/Edit` (dihapus bersama Inertia lain di task berikutnya,
 bukan di sini).
-**Status:** desain, menunggu persetujuan.
+**Status:** selesai (disetujui pemilik proyek 2026-11-23: Keputusan 1 = A, Keputusan 2 = A, alamat `/schedules`).
 
 ---
 
@@ -213,10 +213,22 @@ Jam praktek mingguan. Jam mengikuti zona waktu klinik (WITA).
 - 390px: tanpa scroll horizontal; keyboard: Tab melewati centang dan jam per hari, fokus terlihat.
 
 ## Kriteria Selesai
-- [ ] `ScheduleService`, 2 endpoint, dan tes backend lulus; `ScheduleWeekTest` lama lulus tanpa diubah.
-- [ ] `/schedules` di shell staf, menu "Jadwal" aktif di sidebar.
-- [ ] Pasien terdampak tampil setelah simpan; booking tidak berubah.
-- [ ] `npm test`, lint, `tsc`, build bersih; inspector taste-skill `--app` 0 FAIL di 1440/768/390.
+- [x] `ScheduleService`, 2 endpoint, dan tes backend lulus (172 tes, 13 baru di `ScheduleApiTest`);
+      `ScheduleWeekTest` lama lulus tanpa diubah.
+- [x] `/schedules` di shell staf, menu "Jadwal" aktif di sidebar.
+- [x] Pasien terdampak tampil setelah simpan; booking tidak berubah.
+- [x] `npm test` (54 tes), lint, `tsc`, build bersih; inspector taste-skill `--app` 0 FAIL di 1440/768/390.
+      Satu WARN `hero-void` (ruang di bawah panel kanan) dibiarkan: kolom itu tempat hasil simpan,
+      pola yang sama dengan Blokir waktu. `font-not-dealt` diabaikan seperti Task 11.
+
+## Catatan Pembangunan
+- `ScheduleWeekController::update` (Inertia) sekarang memanggil `ScheduleService::syncWeek()`.
+- Baris hari memakai kolom grid tetap (`112px 248px 64px 1fr`): tiap baris adalah grid sendiri, jadi
+  kolom `auto` membuat bar 00-24 tidak sejajar antara hari aktif dan libur.
+- Sebelum ada hasil simpan, kolom kanan berisi keterangan (apa yang akan muncul + tautan Blokir waktu).
+- Interaksi diuji di Chrome headless dengan API tiruan: simpan nonaktif tanpa perubahan, error per
+  hari, samakan jam, konfirmasi pindah dokter, panel terdampak + WhatsApp, peringatan 0 slot.
+  Daftar Cek Manual dengan Laravel asli belum dijalankan.
 
 ## Diserahkan ke Pembangun
 Nama komponen internal, teks kerangka, isi pesan WhatsApp dan pesan error (berbahasa Indonesia dan
